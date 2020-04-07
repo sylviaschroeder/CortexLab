@@ -1,0 +1,20 @@
+addpath('C:\STORAGE\GithubCode\Code')
+addpath('C:\STORAGE\GithubCode\Code\databases')
+
+addpath('C:\STORAGE\Dropbox\Code')
+addpath('C:\STORAGE\Dropbox\Code\databases')
+addpath(genpath('C:\STORAGE\Dropbox\Code\scripts'))
+
+addpath(genpath('C:\STORAGE\workspaces\chronux\chronux_code_2_00'), '-end')
+addpath(genpath('C:\STORAGE\workspaces\spikes'))
+addpath(genpath('C:\STORAGE\workspaces\kilotrodeRig'))
+addpath(genpath('C:\STORAGE\workspaces\Rigbox'))
+addpath(genpath('C:\STORAGE\workspaces\npy-matlab'))
+addpath(genpath('C:\STORAGE\workspaces\EyeTracking'))
+
+addpath('\\ZSERVER.cortexlab.net\Code\Stimulus')
+addpath('\\ZSERVER.cortexlab.net\Code\2photonPipeline')
+addpath('\\ZSERVER.cortexlab.net\Code\Spikes')
+addpath('\\ZSERVER.cortexlab.net\Data\xfiles')
+addpath('\\ZSERVER.cortexlab.net\Code\MouseEyeTrack')
+addpath('\\ZSERVER.cortexlab.net\Code\Matteobox')

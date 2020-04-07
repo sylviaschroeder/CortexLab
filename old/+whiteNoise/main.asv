@@ -1,0 +1,40 @@
+subject='M141002_SS026';
+expDate='2014-10-29';
+exp=2;
+plane = 2;
+
+info=ppbox.infoPopulate(subject, expDate, exp);
+basenameROI = sprintf('%s_plane%03d_ROI', info.basename2p, plane);
+load(fullfile(info.folderProcessed, basenameROI), 'meta');
+
+frameTimes = ppbox.getFrameTimes(meta);
+stimTimes = ppbox.getStimTimes(meta);
+[stimFrames, stimFrameTimes, stimPosition] = whiteNoise.getStimulusFrames(meta);
+
+neuron = 4;
+RFtypes = {'Absolute', 'ON', 'OFF'};
+colors = 'rb';
+[receptiveFields, RFtimes] = whiteNoise.getReceptiveField( ...
+    meta.F(:, neuron), frameTimes, stimFrames, stimFrameTimes, ...
+    stimTimes, RFtypes, 1);
+receptiveField = whiteNoise.plotReceptiveField(receptiveFields, RFtimes, ...
+    stimPosition, RFtypes);
+
+figure
+RFinds = [];
+for type = 1:length(RFtypes)
+    if max(abs(receptiveField{type}(:))) / std(receptiveField{type}(:)) > 5
+        inf(type) = whiteNoise.fitGaussianToRF(receptiveField{type}, ...
+            RFtimes, stimPosition, 0, RFtypes{type}, 0);
+        RFinds = [RFinds, type];
+    end
+end
+inf = inf(RFinds);
+whiteNoise.plotFitReceptiveField([size(receptiveField{1},1) ...
+    size(receptiveField{1},2)], ...
+    {inf.gaussianFit}, stimPosition, RFtypes(RFinds), [inf.RFsign]);
+
+% figure
+% whiteNoise.plotFitReceptiveField([size(receptiveFields{1},1), ...
+%     size(receptiveFields{1},1)], {RFinfo.gaussianFit}, stimPosition, ...
+%     RFtypes, [RFinfo.RFsign]);
