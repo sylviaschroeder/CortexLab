@@ -202,4 +202,19 @@ for iSet = 1:length(db)
     [t,ind] = min(afterStim, [], 1);
     afterStimMoves = allOnsets(ind);
     afterStimMoves(isnan(t)) = NaN;
+    
+    variables(iSet).caTime = caTime;
+    variables(iSet).caTraces = caTraces;
+    variables(iSet).cellIDs = cellIDs;
+    variables(iSet).tlTime = tlTime;
+    variables(iSet).wheelVelocity = wheelVelocity;
+    variables(iSet).allMoves = allMoves;
+    variables(iSet).afterStimMoves = afterStimMoves;
+    variables(iSet).stimOnTimes = stimOnTimes;
+    variables(iSet).beepTimes = beepTimes;
+    variables(iSet).feedbackTimes = feedbackTimes;
+    variables(iSet).stimulus = stimulus;
+    variables(iSet).repeated = repeated;
+    variables(iSet).choice = choice;
+    variables(iSet).outcome = outcome;
 end
