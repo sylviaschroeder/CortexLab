@@ -1,7 +1,7 @@
 %% Parameters
 stimuli = {'gratings', 'grayScreen', 'dark'};
-% label = 'neurons';
-label = 'boutons';
+label = 'neurons';
+% label = 'boutons';
 
 % for evaluation of receptive fields (significance/goodness)
 minExplainedVarianceStim = 0.01;
