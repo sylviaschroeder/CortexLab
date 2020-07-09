@@ -169,6 +169,8 @@ for k = 1:length(RFs)
         for j = 1:length(units)
             iCell = units(j);
             for c = 1:2
+                % NOTE: indexing with iCell is WRONG! It should be
+                % data.cellIDs(iCell)!
                 resp(iCell,:,:,c) = data.cond(c).cell(iCell).responses;
                 
                 pars = data.cond(c).cell(iCell).parameters;

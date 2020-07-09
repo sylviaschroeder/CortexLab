@@ -74,7 +74,7 @@ db(k).OTtimes = {{[790 5500],[240 700;2280 2520;2622 5500], ...
 db(k).OTampSTDs = {[0 10 5]};
 db(k).OTdepth = {[0 800]};
 
-k = k + 1; % 5 (10) but unit 66 was excluded because there is no running
+k = k + 1; % 5 (9) unit 66 was excluded because there is no running
 db(k).subject = 'SS098';
 db(k).date = '2018-03-16';
 db(k).probeNames = {'K1', 'ZO'};

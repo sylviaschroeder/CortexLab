@@ -6,7 +6,7 @@ db(k).date = '2015-08-11';
 db(k).exp = 1;
 db(k).microID = 'b2';
 
-%
+
 % (2)
 k=k+1;
 db(k).subject = 'SS047';
@@ -19,12 +19,12 @@ db(k).subject = 'SS047';
 db(k).date = '2015-11-11';
 db(k).exp = 2;
 db(k).microID = 'b';
-% (4)
-k=k+1;
-db(k).subject = 'SS047';
-db(k).date = '2015-11-12';
-db(k).exp = 1;
-db(k).microID = 'b';
+% % (4)
+% k=k+1;
+% db(k).subject = 'SS047';
+% db(k).date = '2015-11-12';
+% db(k).exp = 1;
+% db(k).microID = 'b';
 % (5)
 k=k+1;
 db(k).subject = 'SS047';
@@ -35,14 +35,15 @@ db(k).microID = 'b';
 k=k+1;
 db(k).subject = 'SS047';
 db(k).date = '2015-11-18';
-db(k).exp = 1:2;
+% db(k).exp = 1:2;
+db(k).exp = 1;
 db(k).microID = 'b';
-% (7)
-k=k+1;
-db(k).subject = 'SS047';
-db(k).date = '2015-11-24';
-db(k).exp = 3;
-db(k).microID = 'b';
+% % (7)
+% k=k+1;
+% db(k).subject = 'SS047';
+% db(k).date = '2015-11-24';
+% db(k).exp = 3;
+% db(k).microID = 'b';
 
 %
 % (8)

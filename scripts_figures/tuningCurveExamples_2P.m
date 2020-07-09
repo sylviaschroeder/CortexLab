@@ -1004,7 +1004,7 @@ h = [0 0];
     axis square
 % end
 
-%% Dertermine mean responses and DSIs and OSIs
+%% Determine mean responses and DSIs and OSIs
 cond = 1; % small or large pupil
 shuffles = 1000;
 directions = 0:30:330;

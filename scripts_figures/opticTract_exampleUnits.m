@@ -2,12 +2,12 @@ db_ephys_opticTract
 
 %% Example units
 dataset = 3; %(SS096, 2018-03-08)
-probe = 1;
+probe = 2;
 unit = 70;
 
-dataset = 5; %(SS098, 2018-03-16)
-probe = 1;
-unit = 65;
+% dataset = 5; %(SS098, 2018-03-16)
+% probe = 1;
+% unit = 65;
 
 samplingRate = 30000;
 
@@ -29,7 +29,8 @@ prctileFilter = 8;
 binSizeFlicker = 0.001;
 
 %% Folders
-ephysFolder = 'J:\Ephys\';
+% ephysFolder = 'J:\Ephys\';
+ephysFolder = '\\ZUBJECTS.cortexlab.net\Subjects';
 plotFolder = 'C:\STORAGE\OneDrive - University College London\Lab\RESULTS\OpticTract\plots_runningCorr\spikeWaveforms_running-notRunning';
 subjectsFolder = '\\ZUBJECTS.cortexlab.net\Subjects';
 
@@ -296,8 +297,9 @@ params.dataType = 'int16';
 params.nCh = 385;
 params.wfWin = round([-0.001 .002] .* samplingRate);
 params.nWf = 10000;
-% for spikeTimes: first convert stimulus times (in master time) to time of
-% probe, then multiply by sampling rate
+% for spikeTimes: first convert spike times (in master time) to time of
+% probe (if this probe was not the "master" probe, then multiply by
+% sampling rate to get spike times in samples (not seconds)
 params.spikeTimes = round((st - bEphysToMaster(2)) ./ ...
     bEphysToMaster(1) .* samplingRate);
 clusters = isRunning(b)'+1;
