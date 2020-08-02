@@ -276,6 +276,10 @@ for k = 1:length(db)
     writeNPY(lickPiezo, ...
         fullfile(folderSession, '_ibl_lickPiezo.raw.npy'));
     
+    writeNPY(eyePos, fullfile(folderSession, 'eye.xyPos.npy'));
+    writeNPY(eyeDiameter, fullfile(folderSession, 'eye.diameter.npy'));
+    writeNPY(eyeTime, fullfile(folderSession, 'eye.timestamps.npy'));
+    
     writeNPY([trialStart trialEnd], ...
         fullfile(folderSession, '_ibl_trials.intervals.npy'));
     writeNPY([stimOnTimes stimOffTimes], ...
