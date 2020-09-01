@@ -22,6 +22,236 @@ tags.ori = {'ori1','ori'};
 tags.contrast = {'c1', 'cg'};
 tags.amplitude = {'amp1'};
 
+%% Get data for each neuron (no fitting!): tuning curve with vs. without laser
+binSizeGrating = 0.01;
+prePostStim = 0.2;
+
+responses = cell(1, length(db)); % each entry: [neuron x stim x rep x time]
+stimuli = cell(1, length(db)); % each entry: 1st row: direction, 2nd row: 
+% blank, 3rd row: laser on
+cellIDs = cell(1, length(db));
+depths = cell(1, length(db));
+cellClass = cell(1, length(db)); % 1: MUA, 2: SUA
+binsGrating = cell(1, length(db));
+stimBins = cell(1, length(db));
+
+for iExp = 1:length(db)
+    fprintf('\nProcessing: %s %s\n', db(iExp).subject, db(iExp).date);
+    alignDir = fullfile(subjectsFolder, db(iExp).subject, db(iExp).date, 'alignments');
+    
+    % load spike data
+    probe = db(iExp).probe;
+    tag = '';
+    if ~isempty(db(iExp).probeNames)
+        tag = ['_' db(iExp).probeNames{probe}];
+    end
+    sp = loadAllKsDir(db(iExp).subject, db(iExp).date);
+    [expNums, ~, ~, ~, ~, ~, hasTimeline] = ...
+        dat.whichExpNums(db(iExp).subject, db(iExp).date);
+    TLexp = expNums(hasTimeline);
+    TLexp = TLexp(end);
+    bTLtoMaster = readNPY(fullfile(alignDir, ...
+        sprintf('correct_timeline_%d_to_ephys_%s.npy', TLexp, db(iExp).probeNames{1})));
+    rawF = fullfile(subjectsFolder, db(iExp).subject, ...
+        db(iExp).date, ['ephys' tag], 'sorting');
+    if isfolder(rawF)
+        [~, ~, spikeDepths] = ksDriftmap(rawF);
+    end
+    
+    % load stimulus info
+    data = load(fullfile(protocolFolder, db(iExp).subject, db(iExp).date, ...
+        num2str(db(iExp).expOri), sprintf('%s_%d_%s_parameters.mat', ...
+        db(iExp).date, db(iExp).expOri, db(iExp).subject)));
+    parsGratings = data.parameters.Protocol;
+    stimOnTL = readNPY(fullfile(alignDir, ...
+        sprintf('mpep_%d_onsets_in_timeline_%d.npy', db(iExp).expOri, TLexp)));
+    stimOffTL = readNPY(fullfile(alignDir, ...
+        sprintf('mpep_%d_offsets_in_timeline_%d.npy', db(iExp).expOri, TLexp)));
+    stimOn = applyCorrection(stimOnTL, bTLtoMaster);
+    stimOff = applyCorrection(stimOffTL, bTLtoMaster);
+    stimDur = mean(stimOff - stimOn);
+    window = [-prePostStim stimDur+prePostStim];
+    binBorders = window(1) : binSizeGrating : window(2);
+    binsGrating{iExp} = binBorders(1:end-1) + binSizeGrating/2;
+    stimBins{iExp} = binsGrating{iExp}>0 & binsGrating{iExp}<stimDur;
+    stimIDs = repmat((1:parsGratings.npfilestimuli)',parsGratings.nrepeats,1);
+    [~,order] = sort(parsGratings.seqnums(:));
+    stimSeq = stimIDs(order);
+    blank = parsGratings.pars(strcmp(parsGratings.parnames,'c1'),:) == 0;
+    directions = parsGratings.pars(strcmp(parsGratings.parnames,'ori1'),:);
+    directions(blank) = NaN;
+    laserOn = parsGratings.pars(strcmp(parsGratings.parnames,'amp1'),:) > 0;
+    stimuli{iExp} = [directions; blank; laserOn];
+    repeats = setdiff(1:parsGratings.nrepeats, db(iExp).excludeReps);
+    
+    % get response for each cell
+    units = sp(probe).cids;
+    included = true(1, length(units));
+    resp = NaN(length(units), length(directions), length(repeats), ...
+        length(binsGrating{iExp}));
+    depths{iExp} = NaN(length(units),1);
+    for iCell = 1:length(units)
+        spInd = sp(probe).clu == units(iCell);
+        depths{iExp}(iCell) = nanmean(spikeDepths(spInd));
+        if depths{iExp}(iCell)<db(iExp).V1depth(1) || depths{iExp}(iCell)>db(iExp).V1depth(2)
+            included(iCell) = false;
+            continue
+        end
+        for stim = 1:length(directions)
+            stimInd = find(stimSeq == stim);
+            stimInd = stimInd(repeats);
+            binnedArray = timestampsToBinned(sp(probe).st(spInd), ...
+                stimOn(stimInd), binSizeGrating, window);
+            resp(iCell,stim,:,:) = binnedArray ./ binSizeGrating;
+        end
+    end
+    responses{iExp} = resp(included,:,:,:);
+    cellIDs{iExp} = units(included);
+    depths{iExp} = depths{iExp}(included);
+    cellClass{iExp} = sp(probe).cgs(included);
+end
+save(fullfile(folderResults, 'gratingResponses.mat'), 'responses', ...
+    'stimuli', 'cellIDs', 'depths', 'cellClass', 'binsGrating', 'stimBins')
+
+%% Plot inactivation index
+layerBorders = [.12, .33, .47, .73];
+inactivationInds = cell(1,length(responses));
+depthsNorm = cell(1,length(responses));
+maxResponses = cell(1,length(responses));
+for iExp = 1:length(responses)
+    % find pref. stim. and resp. to pref. stim. for each neuron (only when
+    % laser is off)
+    offStims = find(stimuli{iExp}(3,:) == 0 & stimuli{iExp}(2,:) == 0);
+    binOnOff = [find(stimBins{iExp},1,'first'), find(stimBins{iExp},1,'last')];
+    stimOff = binsGrating{iExp}(binOnOff(2));
+    binOnOff(2) = find(binsGrating{iExp} > stimOff-0.1, 1);
+    meanResps = mean(mean(responses{iExp}(:,:,:,binOnOff(1):binOnOff(2)), 4), 3); % [neuron x stim]
+    [maxResps, prefStims] = max(meanResps(:,offStims),[],2);
+    prefStims = offStims(prefStims)';
+    onStims = NaN(1,max(offStims));
+    stims = stimuli{iExp};
+    stims(isnan(stims)) = 0; % set orientation of blanks to 0
+    for st = 1:length(offStims)
+        onStims(offStims(st)) = find(all(stims == [stims(1:2,offStims(st));1],1),1);
+    end
+    ind = sub2ind(size(meanResps), 1:size(meanResps,1), onStims(prefStims));
+    maxResps_laser = meanResps(ind)';
+    inactivationInds{iExp} = maxResps_laser ./ maxResps;
+    maxResponses{iExp} = maxResps;
+    
+    % normalise depth
+    depthsNorm{iExp} = (db(iExp).V1depth(2)-depths{iExp}) ./ diff(db(iExp).V1depth);
+end
+
+inact = cat(1,inactivationInds{:});
+inact(inact>2) = 2;
+
+mr = cat(1, maxResponses{:});
+d = cat(1, depthsNorm{:});
+
+ind = mr > 2;
+figure
+plot(inact(ind), d(ind), 'o')
+hold on
+plot([0 2],repmat(layerBorders,2,1),'k')
+set(gca,'XTick',[0 1 2])
+set(gca, 'YDir', 'reverse')
+xlabel('Resp. @ preferred stimulus: laser on / laser off')
+ylabel('Depth (normalised)')
+title(sprintf('Inactivation in V1 (n = %d)', sum(ind)))
+
+% Plot PSTH for each neuron
+for iExp = 1:length(responses)
+    for iCell = 1:size(responses{iExp},1)
+        if maxResponses{iExp}(iCell) < 2
+            continue
+        end
+        psth = squeeze(mean(responses{iExp}(iCell,:,:,:),3));
+        figure
+        imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{1},2)], psth)
+        xlabel('Time from stimulus onset (s)')
+        ylabel('Stimulus')
+        title(sprintf('%s %s cell %d: %.2f laser resp, %.2f depth', ...
+            db(iExp).subject, db(iExp).date, iCell, ...
+            inactivationInds{iExp}(iCell), depthsNorm{iExp}(iCell)))
+    end
+end
+
+% 2nd version of PSTHs (for paper)
+k = 2;
+cells = [2 34 63 28 55 18 75 73];
+cm = colormap('gray');
+cm = flip(cm);
+for j = 1:length(cells)
+    ind = cells(j);
+    psth = squeeze(mean(responses{k}(ind,:,:,:),3));
+    maxi = max(psth(:));
+    figure
+    subplot(2,1,1)
+    imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{k},2)/2], ...
+        psth(1:size(psth,1)/2,:),[0 maxi])
+    ylim([0.5 12.5])
+    title(sprintf('%s %s cell %d: %.2f laser resp, %.2f depth', ...
+        db(k).subject, db(k).date, ind, inactivationInds{k}(ind), ...
+        depthsNorm{k}(ind)))
+    ylabel('laser on')
+    colorbar
+    subplot(2,1,2)
+    imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{k},2)/2], ...
+        psth(size(psth,1)/2+1:end,:),[0 maxi])
+    ylim([0.5 12.5])
+    xlabel('Time from stimulus onset')
+    ylabel('laser off')
+    colormap(cm)
+    colorbar
+end
+
+%% Plot tuning curves (NOT fitted) for each neuron
+conds = [false, true];
+colors = 'kc';
+labels = {'no laser','with laser'};
+xOffsets = [-2 2];
+classes = {'MUA','SUA'};
+for iExp = 1:length(db)
+    folder = fullfile(plotFolder, sprintf('%s_%s', db(iExp).subject, db(iExp).date));
+    if ~isfolder(folder)
+        mkdir(folder)
+    end
+    for iCell = 1:size(responses{iExp},1)
+        resp = nanmean(squeeze(responses{iExp}(iCell,:,:,stimBins{iExp})),3); % [stim x rep]
+        m = nanmean(resp,2);
+        sd = nanstd(resp,0,2)./sqrt(size(resp,2));
+        figure
+        hold on
+        h = [0 0];
+        for c = 1:2
+            gratings = find(stimuli{iExp}(3,:)==conds(c) & stimuli{iExp}(2,:)==0);
+            blank = stimuli{iExp}(3,:)==conds(c) & stimuli{iExp}(2,:)==1;
+            dirs = stimuli{iExp}(1,gratings);
+            dirs = [dirs, dirs(1)+360];
+            h(c) = errorbar(dirs+xOffsets(c), m(gratings([1:end 1])), ...
+                sd(gratings([1:end 1])), [colors(c) 'o-'], 'LineWidth', 2);
+            fill(dirs([1 end end 1]), [[1 1].*(m(blank)+sd(blank)), ...
+                [1 1].*(m(blank)-sd(blank))], 'k', 'EdgeColor', 'none', ...
+                'FaceColor', colors(c), 'FaceAlpha', 0.3)
+            plot(dirs([1 end]), [1 1].*m(blank), [colors(c) '--'], 'LineWidth', 2)
+        end
+        set(gca,'box','off','XTick',0:90:360)
+        xlim([-5 365])
+        xlabel('Direction')
+        ylabel('Firing rate (sp/s)')
+        legend(h, labels)
+        title(sprintf('Neuron %d (%s), depth: %.0f um', cellIDs{iExp}(iCell), ...
+            classes{cellClass{iExp}(iCell)}, depths{iExp}(iCell)))
+        
+        fig = gcf;
+        fig.PaperPositionMode = 'auto';
+        print(fullfile(folder, sprintf('%04d_neuron%04d.jpg', ...
+            round(depths{iExp}(iCell)), cellIDs{iExp}(iCell))), '-djpeg','-r0')
+        close(fig)
+    end
+end
+
 %% Compute tuning curves and linear fits for running and not running
 % parameters: (1) pref. dir., (2) ampl. at pref. dir, (3) direction index,
 %             (4) offset of tuning curve, (5) tuning width
@@ -309,233 +539,3 @@ xlim([-.2 2.2])
 set(gca,'XTick',0:2,'XTickLabel',{'0','1','>=2'},'YDir','reverse')
 xlabel('Response: laser on / laser off')
 ylabel('Depth relative to V1 surface (scaled to max 1)')
-
-%% Get data for each neuron (no fitting!): tuning curve with vs. without laser
-binSizeGrating = 0.01;
-prePostStim = 0.2;
-
-responses = cell(1, length(db)); % each entry: [neuron x stim x rep x time]
-stimuli = cell(1, length(db)); % each entry: 1st row: direction, 2nd row: 
-% blank, 3rd row: laser on
-cellIDs = cell(1, length(db));
-depths = cell(1, length(db));
-cellClass = cell(1, length(db)); % 1: MUA, 2: SUA
-binsGrating = cell(1, length(db));
-stimBins = cell(1, length(db));
-
-for iExp = 1:length(db)
-    fprintf('\nProcessing: %s %s\n', db(iExp).subject, db(iExp).date);
-    alignDir = fullfile(subjectsFolder, db(iExp).subject, db(iExp).date, 'alignments');
-    
-    % load spike data
-    probe = db(iExp).probe;
-    tag = '';
-    if ~isempty(db(iExp).probeNames)
-        tag = ['_' db(iExp).probeNames{probe}];
-    end
-    sp = loadAllKsDir(db(iExp).subject, db(iExp).date);
-    [expNums, ~, ~, ~, ~, ~, hasTimeline] = ...
-        dat.whichExpNums(db(iExp).subject, db(iExp).date);
-    TLexp = expNums(hasTimeline);
-    TLexp = TLexp(end);
-    bTLtoMaster = readNPY(fullfile(alignDir, ...
-        sprintf('correct_timeline_%d_to_ephys_%s.npy', TLexp, db(iExp).probeNames{1})));
-    rawF = fullfile(subjectsFolder, db(iExp).subject, ...
-        db(iExp).date, ['ephys' tag], 'sorting');
-    if isfolder(rawF)
-        [~, ~, spikeDepths] = ksDriftmap(rawF);
-    end
-    
-    % load stimulus info
-    data = load(fullfile(protocolFolder, db(iExp).subject, db(iExp).date, ...
-        num2str(db(iExp).expOri), sprintf('%s_%d_%s_parameters.mat', ...
-        db(iExp).date, db(iExp).expOri, db(iExp).subject)));
-    parsGratings = data.parameters.Protocol;
-    stimOnTL = readNPY(fullfile(alignDir, ...
-        sprintf('mpep_%d_onsets_in_timeline_%d.npy', db(iExp).expOri, TLexp)));
-    stimOffTL = readNPY(fullfile(alignDir, ...
-        sprintf('mpep_%d_offsets_in_timeline_%d.npy', db(iExp).expOri, TLexp)));
-    stimOn = applyCorrection(stimOnTL, bTLtoMaster);
-    stimOff = applyCorrection(stimOffTL, bTLtoMaster);
-    stimDur = mean(stimOff - stimOn);
-    window = [-prePostStim stimDur+prePostStim];
-    binBorders = window(1) : binSizeGrating : window(2);
-    binsGrating{iExp} = binBorders(1:end-1) + binSizeGrating/2;
-    stimBins{iExp} = binsGrating{iExp}>0 & binsGrating{iExp}<stimDur;
-    stimIDs = repmat((1:parsGratings.npfilestimuli)',parsGratings.nrepeats,1);
-    [~,order] = sort(parsGratings.seqnums(:));
-    stimSeq = stimIDs(order);
-    blank = parsGratings.pars(strcmp(parsGratings.parnames,'c1'),:) == 0;
-    directions = parsGratings.pars(strcmp(parsGratings.parnames,'ori1'),:);
-    directions(blank) = NaN;
-    laserOn = parsGratings.pars(strcmp(parsGratings.parnames,'amp1'),:) > 0;
-    stimuli{iExp} = [directions; blank; laserOn];
-    repeats = setdiff(1:parsGratings.nrepeats, db(iExp).excludeReps);
-    
-    % get response for each cell
-    units = sp(probe).cids;
-    included = true(1, length(units));
-    resp = NaN(length(units), length(directions), length(repeats), ...
-        length(binsGrating{iExp}));
-    depths{iExp} = NaN(length(units),1);
-    for iCell = 1:length(units)
-        spInd = sp(probe).clu == units(iCell);
-        depths{iExp}(iCell) = nanmean(spikeDepths(spInd));
-        if depths{iExp}(iCell)<db(iExp).V1depth(1) || depths{iExp}(iCell)>db(iExp).V1depth(2)
-            included(iCell) = false;
-            continue
-        end
-        for stim = 1:length(directions)
-            stimInd = find(stimSeq == stim);
-            stimInd = stimInd(repeats);
-            binnedArray = timestampsToBinned(sp(probe).st(spInd), ...
-                stimOn(stimInd), binSizeGrating, window);
-            resp(iCell,stim,:,:) = binnedArray ./ binSizeGrating;
-        end
-    end
-    responses{iExp} = resp(included,:,:,:);
-    cellIDs{iExp} = units(included);
-    depths{iExp} = depths{iExp}(included);
-    cellClass{iExp} = sp(probe).cgs(included);
-end
-save(fullfile(folderResults, 'gratingResponses.mat'), 'responses', ...
-    'stimuli', 'cellIDs', 'depths', 'cellClass', 'binsGrating', 'stimBins')
-
-%% Plot inactivation index
-layerBorders = [.12, .33, .47, .73];
-inactivationInds = cell(1,length(responses));
-depthsNorm = cell(1,length(responses));
-maxResponses = cell(1,length(responses));
-for iExp = 1:length(responses)
-    % find pref. stim. and resp. to pref. stim. for each neuron (only when
-    % laser is off)
-    offStims = find(stimuli{iExp}(3,:) == 0 & stimuli{iExp}(2,:) == 0);
-    binOnOff = [find(stimBins{iExp},1,'first'), find(stimBins{iExp},1,'last')];
-    stimOff = binsGrating{iExp}(binOnOff(2));
-    binOnOff(2) = find(binsGrating{iExp} > stimOff-0.1, 1);
-    meanResps = mean(mean(responses{iExp}(:,:,:,binOnOff(1):binOnOff(2)), 4), 3); % [neuron x stim]
-    [maxResps, prefStims] = max(meanResps(:,offStims),[],2);
-    prefStims = offStims(prefStims)';
-    onStims = NaN(1,max(offStims));
-    stims = stimuli{iExp};
-    stims(isnan(stims)) = 0; % set orientation of blanks to 0
-    for st = 1:length(offStims)
-        onStims(offStims(st)) = find(all(stims == [stims(1:2,offStims(st));1],1),1);
-    end
-    ind = sub2ind(size(meanResps), 1:size(meanResps,1), onStims(prefStims));
-    maxResps_laser = meanResps(ind)';
-    inactivationInds{iExp} = maxResps_laser ./ maxResps;
-    maxResponses{iExp} = maxResps;
-    
-    % normalise depth
-    depthsNorm{iExp} = (db(iExp).V1depth(2)-depths{iExp}) ./ diff(db(iExp).V1depth);
-end
-
-inact = cat(1,inactivationInds{:});
-inact(inact>2) = 2;
-
-mr = cat(1, maxResponses{:});
-d = cat(1, depthsNorm{:});
-
-ind = mr > 2;
-figure
-plot(inact(ind), d(ind), 'o')
-hold on
-plot([0 2],repmat(layerBorders,2,1),'k')
-set(gca,'XTick',[0 1 2])
-set(gca, 'YDir', 'reverse')
-xlabel('Resp. @ preferred stimulus: laser on / laser off')
-ylabel('Depth (normalised)')
-title(sprintf('Inactivation in V1 (n = %d)', sum(ind)))
-
-% Plot PSTH for each neuron
-for iExp = 1:length(responses)
-    for iCell = 1:size(responses{iExp},1)
-        if maxResponses{iExp}(iCell) < 2
-            continue
-        end
-        psth = squeeze(mean(responses{iExp}(iCell,:,:,:),3));
-        figure
-        imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{1},2)], psth)
-        xlabel('Time from stimulus onset (s)')
-        ylabel('Stimulus')
-        title(sprintf('%s %s cell %d: %.2f laser resp, %.2f depth', ...
-            db(iExp).subject, db(iExp).date, iCell, ...
-            inactivationInds{iExp}(iCell), depthsNorm{iExp}(iCell)))
-    end
-end
-
-% 2nd version of PSTHs (for paper)
-k = 2;
-cells = [2 34 63 28 55 18 75 73];
-cm = colormap('gray');
-cm = flip(cm);
-for j = 1:length(cells)
-    ind = cells(j);
-    psth = squeeze(mean(responses{k}(ind,:,:,:),3));
-    maxi = max(psth(:));
-    figure
-    subplot(2,1,1)
-    imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{k},2)/2], ...
-        psth(1:size(psth,1)/2,:),[0 maxi])
-    ylim([0.5 12.5])
-    title(sprintf('%s %s cell %d: %.2f laser resp, %.2f depth', ...
-        db(k).subject, db(k).date, ind, inactivationInds{k}(ind), ...
-        depthsNorm{k}(ind)))
-    ylabel('laser on')
-    colorbar
-    subplot(2,1,2)
-    imagesc(binsGrating{iExp}([1 end]), [1 size(stimuli{k},2)/2], ...
-        psth(size(psth,1)/2+1:end,:),[0 maxi])
-    ylim([0.5 12.5])
-    xlabel('Time from stimulus onset')
-    ylabel('laser off')
-    colormap(cm)
-    colorbar
-end
-
-%% Plot tuning curves (NOT fitted) for each neuron
-conds = [false, true];
-colors = 'kc';
-labels = {'no laser','with laser'};
-xOffsets = [-2 2];
-classes = {'MUA','SUA'};
-for iExp = 1:length(db)
-    folder = fullfile(plotFolder, sprintf('%s_%s', db(iExp).subject, db(iExp).date));
-    if ~isfolder(folder)
-        mkdir(folder)
-    end
-    for iCell = 1:size(responses{iExp},1)
-        resp = nanmean(squeeze(responses{iExp}(iCell,:,:,stimBins{iExp})),3); % [stim x rep]
-        m = nanmean(resp,2);
-        sd = nanstd(resp,0,2)./sqrt(size(resp,2));
-        figure
-        hold on
-        h = [0 0];
-        for c = 1:2
-            gratings = find(stimuli{iExp}(3,:)==conds(c) & stimuli{iExp}(2,:)==0);
-            blank = stimuli{iExp}(3,:)==conds(c) & stimuli{iExp}(2,:)==1;
-            dirs = stimuli{iExp}(1,gratings);
-            dirs = [dirs, dirs(1)+360];
-            h(c) = errorbar(dirs+xOffsets(c), m(gratings([1:end 1])), ...
-                sd(gratings([1:end 1])), [colors(c) 'o-'], 'LineWidth', 2);
-            fill(dirs([1 end end 1]), [[1 1].*(m(blank)+sd(blank)), ...
-                [1 1].*(m(blank)-sd(blank))], 'k', 'EdgeColor', 'none', ...
-                'FaceColor', colors(c), 'FaceAlpha', 0.3)
-            plot(dirs([1 end]), [1 1].*m(blank), [colors(c) '--'], 'LineWidth', 2)
-        end
-        set(gca,'box','off','XTick',0:90:360)
-        xlim([-5 365])
-        xlabel('Direction')
-        ylabel('Firing rate (sp/s)')
-        legend(h, labels)
-        title(sprintf('Neuron %d (%s), depth: %.0f um', cellIDs{iExp}(iCell), ...
-            classes{cellClass{iExp}(iCell)}, depths{iExp}(iCell)))
-        
-        fig = gcf;
-        fig.PaperPositionMode = 'auto';
-        print(fullfile(folder, sprintf('%04d_neuron%04d.jpg', ...
-            round(depths{iExp}(iCell)), cellIDs{iExp}(iCell))), '-djpeg','-r0')
-        close(fig)
-    end
-end

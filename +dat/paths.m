@@ -13,8 +13,8 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
-server1Name = '\\zserver.cortexlab.net';
-% server1Name = '\\zubjects.cortexlab.net';
+% server1Name = '\\zserver.cortexlab.net';
+server1Name = '\\zubjects.cortexlab.net';
 
 server2Name = '\\zserver.cortexlab.net';
 % server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
