@@ -8,10 +8,9 @@ addpath(genpath('C:\Users\Flora\Documents\Python Scripts\CompetitiveSC_scripts\m
 mouseName='SS087'; 
 thisDate='2017-12-12';
 
-sparseNoiseblock=4;
-passiveblock=5; 
-timelineExpNum=2;
-%%
+timelineExpNum=2;taskblock=3;sparseNoiseblock=4;passiveblock=5; 
+
+%
 root=sprintf('Z:\\%s\\%s',mouseName,thisDate);
 % make alf folder within root
 alfDir=fullfile(root,'alf');
@@ -51,7 +50,7 @@ clear iN
 %% convert passive
 
 iN='passive';
-[block,stimArrayTimes]=alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
+[block,~]=alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
 cond=[block.trial.condition];
 % timings
 blockFlipsTimes = block.stimWindowUpdateTimes; 
@@ -111,11 +110,7 @@ writeNPY(onset_tone(ix_onset_tone),fullfile(alfDir,sprintf('%s.onsetTone_amp.npy
 alf.writeEventseries(alfDir,sprintf('%s.onsetTone',iN), s.onsetToneTime(ix_onset_tone), [], []);
 
 % feedback type (1 when it is valve click -1 is white noise tone)
-
-
-
 writeNPY([block.trial.feedbackType], fullfile(alfDir, sprintf('%s.feedbackType.npy',iN)));
-
 
 % valve click times 
 alf.writeEventseries(alfDir,sprintf('%s.valve_clickON',iN), s.feedbackOnTime(ix_positive_feedback), [], []);
@@ -127,6 +122,62 @@ alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseOFF',iN), s.feedbackOffTime(ix
 
 %alf.writeEventseries(alfDir,sprintf('%s.feedbackON',iN), s.feedbackOnTime, [], []);
 %alf.writeEventseries(alfDir,sprintf('%s.feedbackOFF',iN), s.feedbackOffTime, [], []);
+%% %%%%%%%% write choice world %%%%%%%%
+iN='ChoiceWorld';
+[block,~]=alignsource(root,mouseName,thisDate,taskblock,timelineExpNum);
+cond=[block.trial.condition];
+% timings
+blockFlipsTimes = block.stimWindowUpdateTimes; 
+pdFlipTimes=readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',taskblock,timelineExpNum)));
+co=readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',taskblock,timelineExpNum)));
+co=co';
+s.coeff = co';
+s.blockToPdTimeFrame = @(t)t*co(1) + co(2);
+s.pdToBlockTImeFrame = @(t)(t - co(2))/co(1);
+%offset to place every block flip after corresponding photodiode flip
+lag = -max(blockFlipsTimes*co(1) - pdFlipTimes);
+toPDTimeFrameLag = @(t)t*co(1) + lag;
+
+%% 
+if isfield(block.trial, 'stimulusCueStartedTime')
+    s.stimOnTimes = follows(...
+        toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), pdFlipTimes);
+end
+
+if isfield(block.trial, 'stimulusCueEndedTime') % the last trial is not always completed, hence off times can be shorter array than on times
+    s.stimOffTimes = follows(...
+        toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), pdFlipTimes);
+end
+
+%% fit rest of the times in the block
+blockfit=robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+fitblocktimes= @(t)t*blockfit(2) + blockfit(1);
+s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
+s.onsetToneTime=reshape(fitblocktimes([block.trial.onsetToneSoundPlayedTime]),2,[]); % this has two arrays _ I think it measures on and offsets!
+s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
+s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
+s.interactiveStartedTime=fitblocktimes([block.trial.interactiveStartedTime]);
+s.interactiveEndedTime=fitblocktimes([block.trial.interactiveStartedTime]);
+
+
+%visual stimulus info 
+contr=[cond.visCueContrast];
+writeNPY(contr(1,:),fullfile(alfDir, sprintf('%s.LeftContrast.npy',iN)));
+writeNPY(contr(2,:),fullfile(alfDir, sprintf('%s.RightContrast.npy',iN)));
+alf.writeEventseries(alfDir,sprintf('%s.stimON',iN), s.stimOnTimes, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.stimOFF',iN), s.stimOffTimes, [], []);
+
+alf.writeEventseries(alfDir,sprintf('%s.onsetToneON',iN), s.onsetToneTime(1,:), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.onsetToneOFF',iN), s.onsetToneTime(2,:), [], []);
+
+writeNPY([block.trial.feedbackType], fullfile(alfDir, sprintf('%s.feedbackType.npy',iN)));
+
+alf.writeEventseries(alfDir,sprintf('%s.feedbackON',iN), s.feedbackOnTime, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.feedbackOFF',iN), s.feedbackOffTime, [], []);
+
+alf.writeEventseries(alfDir,sprintf('%s.interactiveStart',iN), s.interactiveStartedTime, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.interactiveEnd',iN), s.interactiveEndedTime, [], []);
+
 
 %% %%%% FUNCTIONS %%%%%%%%
 function [block,stimArrayTimes]=alignsource(root,mouseName,thisDate,rfExpNum,tlExpNum)
@@ -156,3 +207,4 @@ function t = follows(a, b)
     range = max(d) - min(d);
     assert((range/mean(d)) < 4.2, 'delta range is much larger than the mean');
 end
+
