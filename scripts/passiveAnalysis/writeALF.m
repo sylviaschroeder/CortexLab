@@ -49,11 +49,12 @@ clear iN
 
 
 %% convert passive
+
 iN='passive';
 [block,stimArrayTimes]=alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
 cond=[block.trial.condition];
 % timings
-blockFlipsTimes = block.stimWindowUpdateTimes;
+blockFlipsTimes = block.stimWindowUpdateTimes; 
 pdFlipTimes=readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',passiveblock,timelineExpNum)));
 co=readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',passiveblock,timelineExpNum)));
 co=co';
@@ -64,13 +65,7 @@ s.pdToBlockTImeFrame = @(t)(t - co(2))/co(1);
 lag = -max(blockFlipsTimes*co(1) - pdFlipTimes);
 toPDTimeFrameLag = @(t)t*co(1) + lag;
 
-
-%% select relevant trials 
-ix_onset_tone=find([cond.interactiveOnsetToneRelAmp]>0.0001);
-ix_positive_feedback=find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
-ix_negative_feedback=find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
-ix_stimulus=find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
-%%
+%% 
 if isfield(block.trial, 'stimulusCueStartedTime')
     s.stimOnTimes = follows(...
         toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), pdFlipTimes);
@@ -81,22 +76,26 @@ if isfield(block.trial, 'stimulusCueEndedTime')
         toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), pdFlipTimes);
 end
 
-if isfield(block.trial, 'onsetToneSoundPlayedTime')
-    s.onsetToneTime = follows(...
-        toPDTimeFrameLag([block.trial.onsetToneSoundPlayedTime]), pdFlipTimes);
-end
+%% fit rest of the times in the block
+blockfit=robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+fitblocktimes= @(t)t*blockfit(2) + blockfit(1);
+s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
+s.onsetToneTime=fitblocktimes([block.trial.onsetToneSoundPlayedTime]); 
+s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
+s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
 
-if isfield(block.trial, 'feedbackStartedTime')
-    s.feedbackOnTime = follows(...
-        toPDTimeFrameLag([block.trial.feedbackStartedTime]), pdFlipTimes);
-end
+%% select relevant trials 
+ix_onset_tone=find([cond.interactiveOnsetToneRelAmp]>0.0001);
+ix_positive_feedback=find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
+ix_negative_feedback=find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
+ix_stimulus=find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
+%% WRITE NPY
+% ITI start
+alf.writeEventseries(alfDir,sprintf('%s.visualITI_Start',iN), s.trialStartedTime(ix_stimulus), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.onsetToneITI_Start',iN), s.trialStartedTime(ix_onset_tone), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.valveITI_Start',iN), s.trialStartedTime(ix_positive_feedback), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseITI_Start',iN), s.trialStartedTime(ix_negative_feedback), [], []);
 
-if isfield(block.trial, 'feedbackEndedTime')
-    s.feedbackOffTime = follows(...
-        toPDTimeFrameLag([block.trial.feedbackEndedTime]), pdFlipTimes);
-end
-
-%%
 %visual stimulus info 
 contr=[cond.visCueContrast];
 stimDist=[cond.distBetweenTargets];
