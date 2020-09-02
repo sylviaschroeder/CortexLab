@@ -1,22 +1,25 @@
-% clc; clear all; 
-
 %% Folders
-folderTools = 'C:\Users\Flora\Github';
-% folderTools = 'C:\STORAGE\workspaces';
-folderData = 'Z:';
-% folderData = '\\zubjects.cortexlab.net\Subjects';
+% folderTools = 'C:\Users\Flora\Github';
+folderTools = 'C:\STORAGE\workspaces';
+% folderData = 'Z:';
+folderData = '\\zubjects.cortexlab.net\Subjects';
+folderScript = 'C:\dev\workspace\CortexLab\scripts\passiveAnalysis';
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
 addpath(genpath(fullfile(folderTools, 'spikes')));
 addpath(genpath(fullfile(folderTools, 'kilotrodeRig')));
 addpath(genpath(fullfile(folderTools, 'alyx-matlab')));
-% load sync information
+addpath(genpath(folderScript));
 
+%% Define dataset and prepare folders
 mouseName='SS087'; 
 thisDate='2017-12-12';
 
-timelineExpNum=2;taskblock=3;sparseNoiseblock=4;passiveblock=5; 
+timelineExpNum=2;
+taskblock=3;
+sparseNoiseblock=4;
+passiveblock=5; 
 
 root = fullfile(folderData, mouseName, thisDate);
 
@@ -26,48 +29,50 @@ if ~exist(alfDir, 'dir')
    mkdir(alfDir)
 end
 
-%% write alf for all probes using kilotrode rig code 
+% make align folder
+alignDir = fullfile(root, 'alignments');
+
+%% Basic info
 [tags, hasEphys] = getEphysTags(mouseName,thisDate);
+bTLtoMaster = readNPY(fullfile(alignDir, ...
+    sprintf('correct_timeline_%d_to_ephys_%s.npy', timelineExpNum, tags{1})));
+
+%% write alf for all probes using kilotrode rig code 
 % SS: sp is never used! but will be usefull if we want to save spikes
 % differently (all probes in the same folder)
 % sp = loadAllKsDir(mouseName, thisDate); % this code theoretically does the alignment as well
-%%
+
 writeEphysALF(mouseName, thisDate);
 
-%% write numpy of good clusters after phy as well as mua
-% no need to do this as clusters.groups.npy already contains this info
-% fid=tdfread(fullfile(root,sprintf('ephys_%s\\sorting\\cluster_group.tsv',tags{1})));
-% 
-% goods=find(fid.group=='g');
-% goodclus=fid.cluster_id(goods);
-% 
-% muas=find(fid.group=='m');
-% muaclus=fid.cluster_id(muas);
-
 %% convert sparse noise
-iN='sparseNoise'; 
-[block,stimArrayTimes]=alignsource(root,mouseName,thisDate,sparseNoiseblock,timelineExpNum);
+iN = 'sparseNoise'; 
+[block, stimArrayTimes] = alignsource(root, mouseName, thisDate, ...
+    sparseNoiseblock, timelineExpNum);
+% NOTE: computeSparseNoiseSignals has the stimulus position hard coded. It
+% should however be read out from the experiment definition, because this
+% may change! I wouldn't trust the exact position now. I will change this
+% in the future.
 [stimTimeInds, stimPositions, stimArray] = ...
         computeSparseNoiseSignals(block);
-stimTimes = cellfun(@(x)stimArrayTimes(x), stimTimeInds, 'uni', false); 
+stimTimes = cellfun(@(x)stimArrayTimes(x), stimTimeInds, 'uni', false);
 
-alf.writeEventseries(alfDir,sprintf('%s',iN), stimTimes{1}, [], []);
-writeNPY(stimPositions{1}, fullfile(alfDir, sprintf('%s.positions.npy',iN)));
+alf.writeEventseries(alfDir, sprintf('_ibl_%s',iN), stimTimes{1}, [], []);
+% SS: why only use stimPositions{1}? stimPositions are given in [y,x], but
+% IBL standard is [x,y]!
+writeNPY(stimPositions{1}, fullfile(alfDir, sprintf('_ibl_%s.xy.npy',iN)));
 clear block
 clear stimArrayTimes
 clear iN
 
-
 %% convert passive
-
-iN='passive';
-[block,~]=alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
-cond=[block.trial.condition];
+iN = 'passive';
+[block,~] = alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
+cond = [block.trial.condition];
 % timings
 blockFlipsTimes = block.stimWindowUpdateTimes; 
-pdFlipTimes=readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',passiveblock,timelineExpNum)));
-co=readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',passiveblock,timelineExpNum)));
-co=co';
+pdFlipTimes = readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',passiveblock,timelineExpNum)));
+co = readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',passiveblock,timelineExpNum)));
+co = co';
 s.coeff = co';
 s.blockToPdTimeFrame = @(t)t*co(1) + co(2);
 s.pdToBlockTImeFrame = @(t)(t - co(2))/co(1);
@@ -79,26 +84,33 @@ toPDTimeFrameLag = @(t)t*co(1) + lag;
 if isfield(block.trial, 'stimulusCueStartedTime')
     s.stimOnTimes = follows(...
         toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), pdFlipTimes);
+    s.stimOnTimes = applyCorrection(s.stimOnTimes, bTLtoMaster);
 end
 
 if isfield(block.trial, 'stimulusCueEndedTime')
     s.stimOffTimes = follows(...
         toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), pdFlipTimes);
+    s.stimOffTimes = applyCorrection(s.stimOffTimes, bTLtoMaster);
 end
 
 %% fit rest of the times in the block
-blockfit=robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
-fitblocktimes= @(t)t*blockfit(2) + blockfit(1);
-s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
-s.onsetToneTime=fitblocktimes([block.trial.onsetToneSoundPlayedTime]); 
-s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
-s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
+blockfit = robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
+s.trialStartedTime = applyCorrection( ...
+    fitblocktimes([block.trial.trialStartedTime], bTLtoMaster));
+s.onsetToneTime = applyCorrection( ...
+    fitblocktimes([block.trial.onsetToneSoundPlayedTime], bTLtoMaster)); 
+s.feedbackOnTime = applyCorrection( ...
+    fitblocktimes([block.trial.feedbackStartedTime], bTLtoMaster)); 
+s.feedbackOffTime = applyCorrection( ...
+    fitblocktimes([block.trial.feedbackEndedTime], bTLtoMaster));
 
 %% select relevant trials 
-ix_onset_tone=find([cond.interactiveOnsetToneRelAmp]>0.0001);
-ix_positive_feedback=find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
-ix_negative_feedback=find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
-ix_stimulus=find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
+ix_onset_tone = find([cond.interactiveOnsetToneRelAmp]>0.0001);
+ix_positive_feedback = find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
+ix_negative_feedback = find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
+ix_stimulus = find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
+
 %% WRITE NPY
 % ITI start
 alf.writeEventseries(alfDir,sprintf('%s.visualITI_Start',iN), s.trialStartedTime(ix_stimulus), [], []);
