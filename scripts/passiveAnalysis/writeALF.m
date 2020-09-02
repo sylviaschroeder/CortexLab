@@ -1,8 +1,16 @@
-clc; clear all; 
-addpath(genpath('C:\Users\Flora\Github\npy-matlab'));
-addpath(genpath('C:\Users\Flora\Github\spikes'));
-addpath(genpath('C:\Users\Flora\Github\kilotrodeRig'));
-addpath(genpath('C:\Users\Flora\Documents\Python Scripts\CompetitiveSC_scripts\matlab_readers')); 
+% clc; clear all; 
+
+%% Folders
+folderTools = 'C:\Users\Flora\Github';
+% folderTools = 'C:\STORAGE\workspaces';
+folderData = 'Z:';
+% folderData = '\\zubjects.cortexlab.net\Subjects';
+
+%% Add paths
+addpath(genpath(fullfile(folderTools, 'npy-matlab')));
+addpath(genpath(fullfile(folderTools, 'spikes')));
+addpath(genpath(fullfile(folderTools, 'kilotrodeRig')));
+addpath(genpath(fullfile(folderTools, 'alyx-matlab')));
 % load sync information
 
 mouseName='SS087'; 
@@ -10,16 +18,19 @@ thisDate='2017-12-12';
 
 timelineExpNum=2;taskblock=3;sparseNoiseblock=4;passiveblock=5; 
 
-%
-root=sprintf('Z:\\%s\\%s',mouseName,thisDate);
+root = fullfile(folderData, mouseName, thisDate);
+
 % make alf folder within root
-alfDir=fullfile(root,'alf');
+alfDir = fullfile(root, 'alf');
 if ~exist(alfDir, 'dir')
    mkdir(alfDir)
 end
+
 %% write alf for all probes using kilotrode rig code 
 [tags, hasEphys] = getEphysTags(mouseName,thisDate);
-sp = loadAllKsDir(mouseName, thisDate); % this code theoretically does the alignment as well
+% SS: sp is never used! but will be usefull if we want to save spikes
+% differently (all probes in the same folder)
+% sp = loadAllKsDir(mouseName, thisDate); % this code theoretically does the alignment as well
 %%
 writeEphysALF(mouseName, thisDate);
 
