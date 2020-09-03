@@ -94,16 +94,12 @@ if isfield(block.trial, 'stimulusCueEndedTime')
 end
 
 %% fit rest of the times in the block
-blockfit = robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+blockfit = robustfit([block.trial.stimulusCueStartedTime], s.stimOnTimes);
 fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
-s.trialStartedTime = applyCorrection( ...
-    fitblocktimes([block.trial.trialStartedTime], bTLtoMaster));
-s.onsetToneTime = applyCorrection( ...
-    fitblocktimes([block.trial.onsetToneSoundPlayedTime], bTLtoMaster)); 
-s.feedbackOnTime = applyCorrection( ...
-    fitblocktimes([block.trial.feedbackStartedTime], bTLtoMaster)); 
-s.feedbackOffTime = applyCorrection( ...
-    fitblocktimes([block.trial.feedbackEndedTime], bTLtoMaster));
+s.trialStartedTime = fitblocktimes([block.trial.trialStartedTime], bTLtoMaster);
+s.onsetToneTime = fitblocktimes([block.trial.onsetToneSoundPlayedTime], bTLtoMaster); 
+s.feedbackOnTime = fitblocktimes([block.trial.feedbackStartedTime], bTLtoMaster); 
+s.feedbackOffTime = fitblocktimes([block.trial.feedbackEndedTime], bTLtoMaster);
 
 %% select relevant trials 
 ix_onset_tone = find([cond.interactiveOnsetToneRelAmp]>0.0001);
