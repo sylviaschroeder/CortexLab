@@ -94,8 +94,9 @@ if isfield(block.trial, 'stimulusCueEndedTime')
 end
 
 %% fit rest of the times in the block
-blockfit = robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+blockfit = robustfit([block.trial.stimulusCueStartedTime], s.stimOnTimes);
 fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
+
 s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
 s.onsetToneTime=fitblocktimes([block.trial.onsetToneSoundPlayedTime]); 
 s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
