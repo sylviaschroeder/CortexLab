@@ -1,16 +1,16 @@
 %% Folders
-% folderTools = 'C:\Users\Flora\Github';
-folderTools = 'C:\STORAGE\workspaces';
-% folderData = 'Z:';
-folderData = '\\zubjects.cortexlab.net\Subjects';
-folderScript = 'C:\dev\workspace\CortexLab\scripts\passiveAnalysis';
+folderTools = 'C:\Users\Flora\Github';
+%folderTools = 'C:\STORAGE\workspaces';
+folderData = 'Z:';
+%folderData = '\\zubjects.cortexlab.net\Subjects';
+folderScript = 'CortexLab\scripts\passiveAnalysis';
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
 addpath(genpath(fullfile(folderTools, 'spikes')));
 addpath(genpath(fullfile(folderTools, 'kilotrodeRig')));
 addpath(genpath(fullfile(folderTools, 'alyx-matlab')));
-addpath(genpath(folderScript));
+addpath(genpath(fullfile(folderTools, folderScript)));
 
 %% Define dataset and prepare folders
 mouseName='SS087'; 
@@ -65,7 +65,7 @@ clear stimArrayTimes
 clear iN
 
 %% convert passive
-iN = 'passive';
+iN = '_ss_passiveTrials';
 [block,~] = alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
 cond = [block.trial.condition];
 % timings
@@ -96,57 +96,56 @@ end
 %% fit rest of the times in the block
 blockfit = robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
 fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
-s.trialStartedTime = applyCorrection( ...
-    fitblocktimes([block.trial.trialStartedTime], bTLtoMaster));
-s.onsetToneTime = applyCorrection( ...
-    fitblocktimes([block.trial.onsetToneSoundPlayedTime], bTLtoMaster)); 
-s.feedbackOnTime = applyCorrection( ...
-    fitblocktimes([block.trial.feedbackStartedTime], bTLtoMaster)); 
-s.feedbackOffTime = applyCorrection( ...
-    fitblocktimes([block.trial.feedbackEndedTime], bTLtoMaster));
+s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
+s.onsetToneTime=fitblocktimes([block.trial.onsetToneSoundPlayedTime]); 
+s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
+s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
+
 
 %% select relevant trials 
-ix_onset_tone = find([cond.interactiveOnsetToneRelAmp]>0.0001);
-ix_positive_feedback = find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
-ix_negative_feedback = find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
-ix_stimulus = find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
+%ix_onset_tone = find([cond.interactiveOnsetToneRelAmp]>0.0001);
+%ix_positive_feedback = find([block.trial.feedbackType]==1); % this is basically the same sound as the valve 
+%ix_negative_feedback = find([cond.negFeedbackSoundAmp]>0); % trials with negative feedback
+%ix_stimulus = find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
 
 %% WRITE NPY
 % ITI start
-alf.writeEventseries(alfDir,sprintf('%s.visualITI_Start',iN), s.trialStartedTime(ix_stimulus), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.onsetToneITI_Start',iN), s.trialStartedTime(ix_onset_tone), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.valveITI_Start',iN), s.trialStartedTime(ix_positive_feedback), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseITI_Start',iN), s.trialStartedTime(ix_negative_feedback), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.Trial_Start',iN), s.trialStartedTime(ix_stimulus), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.onsetToneITI_Start',iN), s.trialStartedTime(ix_onset_tone), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.valveITI_Start',iN), s.trialStartedTime(ix_positive_feedback), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseITI_Start',iN), s.trialStartedTime(ix_negative_feedback), [], []);
 
 %visual stimulus info 
 contr=[cond.visCueContrast];
 stimDist=[cond.distBetweenTargets];
-writeNPY(contr(1,ix_stimulus),fullfile(alfDir, sprintf('%s.LeftContrast.npy',iN)));
-writeNPY(contr(2,ix_stimulus),fullfile(alfDir, sprintf('%s.RightContrast.npy',iN)));
+writeNPY(contr(1,ix_stimulus),fullfile(alfDir, sprintf('%s.contrastLeft.npy',iN)));
+writeNPY(contr(2,ix_stimulus),fullfile(alfDir, sprintf('%s.contrastRight.npy',iN)));
 writeNPY(stimDist(ix_stimulus),fullfile(alfDir,sprintf('%s.stimuliDistance.npy',iN)));
-alf.writeEventseries(alfDir,sprintf('%s.stimON',iN), s.stimOnTimes(ix_stimulus) , [], []);
-alf.writeEventseries(alfDir,sprintf('%s.stimOFF',iN), s.stimOffTimes(ix_stimulus), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.stimOn',iN), s.stimOnTimes , [], []);
+alf.writeEventseries(alfDir,sprintf('%s.stimOff',iN), s.stimOffTimes, [], []);
 
 %audio information from onset tone
 onset_tone=[cond.interactiveOnsetToneRelAmp];
-writeNPY(onset_tone(ix_onset_tone),fullfile(alfDir,sprintf('%s.onsetTone_amp.npy',iN)));
-alf.writeEventseries(alfDir,sprintf('%s.onsetTone',iN), s.onsetToneTime(ix_onset_tone), [], []);
+writeNPY(onset_tone(ix_onset_tone),fullfile(alfDir,sprintf('%s.goCue_amp.npy',iN)));
+alf.writeEventseries(alfDir,sprintf('%s.goCue',iN), s.onsetToneTime, [], []);
 
 % feedback type (1 when it is valve click -1 is white noise tone)
 writeNPY([block.trial.feedbackType], fullfile(alfDir, sprintf('%s.feedbackType.npy',iN)));
+alf.writeEventseries(alfDir,sprintf('%s.feedbackOn',iN), s.feedbackOnTime, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.feedbackOff',iN), s.feedbackOffTime, [], []);
+% white noise amplitude
+writeNPY([cond.negFeedbackSoundAmp], fullfile(alfDir, sprintf('%s.feedback_amp.npy',iN)));
 
 % valve click times 
-alf.writeEventseries(alfDir,sprintf('%s.valve_clickON',iN), s.feedbackOnTime(ix_positive_feedback), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.valve_clickOFF',iN), s.feedbackOffTime(ix_positive_feedback), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.valve_clickON',iN), s.feedbackOnTime(ix_positive_feedback), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.valve_clickOFF',iN), s.feedbackOffTime(ix_positive_feedback), [], []);
+% 
+% % negative feedback sounds
+% alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseON',iN), s.feedbackOnTime(ix_negative_feedback), [], []);
+% alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseOFF',iN), s.feedbackOffTime(ix_negative_feedback), [], []);
 
-% negative feedback sounds
-alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseON',iN), s.feedbackOnTime(ix_negative_feedback), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.whiteNoiseOFF',iN), s.feedbackOffTime(ix_negative_feedback), [], []);
-
-%alf.writeEventseries(alfDir,sprintf('%s.feedbackON',iN), s.feedbackOnTime, [], []);
-%alf.writeEventseries(alfDir,sprintf('%s.feedbackOFF',iN), s.feedbackOffTime, [], []);
 %% %%%%%%%% write choice world %%%%%%%%
-iN='ChoiceWorld';
+iN='_ChoiceWorld_trials';
 [block,~]=alignsource(root,mouseName,thisDate,taskblock,timelineExpNum);
 cond=[block.trial.condition];
 % timings
@@ -173,8 +172,9 @@ if isfield(block.trial, 'stimulusCueEndedTime') % the last trial is not always c
 end
 
 %% fit rest of the times in the block
-blockfit=robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
-fitblocktimes= @(t)t*blockfit(2) + blockfit(1);
+
+blockfit = robustfit([block.trial.stimulusCueStartedTime],s.stimOnTimes);
+fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
 s.trialStartedTime=fitblocktimes([block.trial.trialStartedTime]);
 s.onsetToneTime=reshape(fitblocktimes([block.trial.onsetToneSoundPlayedTime]),2,[]); % this has two arrays _ I think it measures on and offsets!
 s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
@@ -185,21 +185,23 @@ s.interactiveEndedTime=fitblocktimes([block.trial.interactiveStartedTime]);
 
 %visual stimulus info 
 contr=[cond.visCueContrast];
-writeNPY(contr(1,:),fullfile(alfDir, sprintf('%s.LeftContrast.npy',iN)));
-writeNPY(contr(2,:),fullfile(alfDir, sprintf('%s.RightContrast.npy',iN)));
-alf.writeEventseries(alfDir,sprintf('%s.stimON',iN), s.stimOnTimes, [], []);
-alf.writeEventseries(alfDir,sprintf('%s.stimOFF',iN), s.stimOffTimes, [], []);
+writeNPY(contr(1,:),fullfile(alfDir, sprintf('%s.contrastLeft.npy',iN)));
+writeNPY(contr(2,:),fullfile(alfDir, sprintf('%s.contrastRight.npy',iN)));
+alf.writeEventseries(alfDir,sprintf('%s.stimOn',iN), s.stimOnTimes, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.stimOff',iN), s.stimOffTimes, [], []);
 
-alf.writeEventseries(alfDir,sprintf('%s.onsetToneON',iN), s.onsetToneTime(1,:), [], []);
-alf.writeEventseries(alfDir,sprintf('%s.onsetToneOFF',iN), s.onsetToneTime(2,:), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.goCueOn',iN), s.onsetToneTime(1,:), [], []);
+alf.writeEventseries(alfDir,sprintf('%s.goCueOff',iN), s.onsetToneTime(2,:), [], []);
 
 writeNPY([block.trial.feedbackType], fullfile(alfDir, sprintf('%s.feedbackType.npy',iN)));
 
-alf.writeEventseries(alfDir,sprintf('%s.feedbackON',iN), s.feedbackOnTime, [], []);
-alf.writeEventseries(alfDir,sprintf('%s.feedbackOFF',iN), s.feedbackOffTime, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.feedbackOn',iN), s.feedbackOnTime, [], []);
+alf.writeEventseries(alfDir,sprintf('%s.feedbackOff',iN), s.feedbackOffTime, [], []);
 
 alf.writeEventseries(alfDir,sprintf('%s.interactiveStart',iN), s.interactiveStartedTime, [], []);
 alf.writeEventseries(alfDir,sprintf('%s.interactiveEnd',iN), s.interactiveEndedTime, [], []);
+
+alf.writeEventseries(alfDir,sprintf('%s.Trial_Start',iN), s.trialStartedTime(ix_stimulus), [], []);
 
 
 %% %%%% FUNCTIONS %%%%%%%%
