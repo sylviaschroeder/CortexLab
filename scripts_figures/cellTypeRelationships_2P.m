@@ -1,7 +1,7 @@
 %% Define data
 
-% label = 'neurons';
-label = 'boutons';
+label = 'neurons';
+% label = 'boutons';
 
 %% Parameter
 % for evaluation of receptive fields (significance/goodness)
@@ -168,21 +168,53 @@ for k = 1:length(RFs)
         units = find(~cellfun(@isempty, {data.cond(1).cell.parameters}));
         for j = 1:length(units)
             iCell = units(j);
+            % INCORRECT as in paper; indexing with iCell is WRONG! It should be
+            % data.cellIDs(iCell)!
+%             for c = 1:2
+%                 resp(iCell,:,:,c) = data.cond(c).cell(iCell).responses;
+%                 
+%                 pars = data.cond(c).cell(iCell).parameters;
+%                 curve = data.cond(c).cell(iCell).curve;
+%                 if length(pars) == 1 % not tuned
+%                     means(iCell,c) = pars;
+%                 else
+%                     prefDir(iCell) = pars(1);
+%                     means(iCell,c) = mean(curve);
+%                     oris = mod(pars(1) + [0 90 180], 360);
+%                     sr = gratings.orituneWrappedConditions(pars, oris);
+%                     prefs(iCell,c) = sr(1);
+%                 end
+%             end
+%             
+%             if ~isempty(corrections)
+%                 a = corrections(ktun).plane(iPlane).a{tuning(ktun).exp} ...
+%                     (data.cellIDs(iCell));
+%                 b = corrections(ktun).plane(iPlane).b{tuning(ktun).exp} ...
+%                     (data.cellIDs(iCell));
+%                 resp(iCell,:,:,:) = doCorrect(a,b,resp(iCell,:,:,:));
+%                 prefs(iCell,:) = doCorrect(a,b,prefs(iCell,:));
+%                 means(iCell,:) = doCorrect(a,b,means(iCell,:));
+%             end
+%             
+%             spp(iCell) = data.isSuppressed(iCell);
+%             if isfield(data, 'isGad')
+%                 gd(iCell) = data.isGad(iCell);
+%             end
+            
+            % CORRECTED (after publication)
             for c = 1:2
-                % NOTE: indexing with iCell is WRONG! It should be
-                % data.cellIDs(iCell)!
-                resp(iCell,:,:,c) = data.cond(c).cell(iCell).responses;
+                resp(data.cellIDs(iCell),:,:,c) = data.cond(c).cell(iCell).responses;
                 
                 pars = data.cond(c).cell(iCell).parameters;
                 curve = data.cond(c).cell(iCell).curve;
                 if length(pars) == 1 % not tuned
-                    means(iCell,c) = pars;
+                    means(data.cellIDs(iCell),c) = pars;
                 else
-                    prefDir(iCell) = pars(1);
-                    means(iCell,c) = mean(curve);
+                    prefDir(data.cellIDs(iCell)) = pars(1);
+                    means(data.cellIDs(iCell),c) = mean(curve);
                     oris = mod(pars(1) + [0 90 180], 360);
                     sr = gratings.orituneWrappedConditions(pars, oris);
-                    prefs(iCell,c) = sr(1);
+                    prefs(data.cellIDs(iCell),c) = sr(1);
                 end
             end
             
@@ -191,14 +223,14 @@ for k = 1:length(RFs)
                     (data.cellIDs(iCell));
                 b = corrections(ktun).plane(iPlane).b{tuning(ktun).exp} ...
                     (data.cellIDs(iCell));
-                resp(iCell,:,:,:) = doCorrect(a,b,resp(iCell,:,:,:));
-                prefs(iCell,:) = doCorrect(a,b,prefs(iCell,:));
-                means(iCell,:) = doCorrect(a,b,means(iCell,:));
+                resp(data.cellIDs(iCell),:,:,:) = doCorrect(a,b,resp(iCell,:,:,:));
+                prefs(data.cellIDs(iCell),:) = doCorrect(a,b,prefs(iCell,:));
+                means(data.cellIDs(iCell),:) = doCorrect(a,b,means(iCell,:));
             end
             
-            spp(iCell) = data.isSuppressed(iCell);
+            spp(data.cellIDs(iCell)) = data.isSuppressed(iCell);
             if isfield(data, 'isGad')
-                gd(iCell) = data.isGad(iCell);
+                gd(data.cellIDs(iCell)) = data.isGad(iCell);
             end
         end
         prefDirs = [prefDirs; prefDir];
@@ -334,16 +366,16 @@ title(sprintf('%d driven, %d suppressed', ...
 ind = validRF & (isGad==1 | isGad==-1);
 tbl = table(OnOffRatios(ind), nominal(isGad(ind)), datasets(ind), mice(ind), 'VariableNames', ...
     {'OnOff','inhibitory','session','mouse'});
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (inhibitory|session) + (inhibitory|mouse)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (inhibitory-1|session) + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (inhibitory|session) + (inhibitory|mouse)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (inhibitory-1|session) + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
 lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (1|mouse)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (inhibitory|session)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (inhibitory-1|session)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|mouse)','DummyVarCoding','effects');
-lme = fitlme(tbl, 'OnOff ~ inhibitory','DummyVarCoding','effects')
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (inhibitory|session)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session) + (inhibitory-1|session)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|session)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|mouse) + (inhibitory-1|mouse)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory + (1|mouse)','DummyVarCoding','effects');
+% lme = fitlme(tbl, 'OnOff ~ inhibitory','DummyVarCoding','effects')
 
 groups = validRF & [isGad == -1, isGad == 1];
 groupNames = {'excitatory','inhibitory'};

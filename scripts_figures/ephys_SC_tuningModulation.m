@@ -244,10 +244,16 @@ for m = 5 % 1:length(measures)
     % a more negative response with arousal results in a positive DI
     diffOff(isSuppr==1) = -diffOff(isSuppr==1);
     diffOn(isSuppr==1) = -diffOn(isSuppr==1);
-    pseudoBehOff(isSuppr==1) = -pseudoBehOff(isSuppr==1);
-    pseudoBehOn(isSuppr==1) = -pseudoBehOn(isSuppr==1);
-    pseudoLaserOff(isSuppr==1) = -pseudoLaserOff(isSuppr==1);
-    pseudoLaserOn(isSuppr==1) = -pseudoLaserOn(isSuppr==1);
+    % NOTE: in paper incorrect as only first column is inverted
+%     pseudoBehOff(isSuppr==1) = -pseudoBehOff(isSuppr==1);
+%     pseudoBehOn(isSuppr==1) = -pseudoBehOn(isSuppr==1);
+%     pseudoLaserOff(isSuppr==1) = -pseudoLaserOff(isSuppr==1);
+%     pseudoLaserOn(isSuppr==1) = -pseudoLaserOn(isSuppr==1);
+    % NOW: correct
+    pseudoBehOff(isSuppr==1,:) = -pseudoBehOff(isSuppr==1,:);
+    pseudoBehOn(isSuppr==1,:) = -pseudoBehOn(isSuppr==1,:);
+    pseudoLaserOff(isSuppr==1,:) = -pseudoLaserOff(isSuppr==1,:);
+    pseudoLaserOn(isSuppr==1,:) = -pseudoLaserOn(isSuppr==1,:);
     
     confIntBehOff = prctile(pseudoBehOff, [2.5 97.5], 2);
     signBeh = diffOff < confIntBehOff(:,1) | diffOff > confIntBehOff(:,2);
