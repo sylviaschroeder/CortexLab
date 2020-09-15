@@ -1,29 +1,16 @@
 %% Folders
-<<<<<<< Updated upstream
 folderTools = 'C:\Users\Flora\Github';
 %folderTools = 'C:\STORAGE\workspaces';
 folderData = 'Z:';
 %folderData = '\\zubjects.cortexlab.net\Subjects';
 folderScript = 'CortexLab\scripts\passiveAnalysis';
-=======
-% folderTools = 'C:\Users\Flora\Github';
-folderTools = 'C:\STORAGE\workspaces';
-% folderData = 'Z:';
-folderData = '\\zubjects.cortexlab.net\Subjects';
-% folderScript = 'C:\Users\Flora\Github\CortexLab\scripts\passiveAnalysis';
-folderScript = 'C:\dev\workspace\CortexLab';
->>>>>>> Stashed changes
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
 addpath(genpath(fullfile(folderTools, 'spikes')));
 addpath(genpath(fullfile(folderTools, 'kilotrodeRig')));
 addpath(genpath(fullfile(folderTools, 'alyx-matlab')));
-<<<<<<< Updated upstream
 addpath(genpath(fullfile(folderTools, folderScript)));
-=======
-addpath(genpath(fullfile(folderScript)));
->>>>>>> Stashed changes
 
 %% Define dataset and prepare folders
 mouseName='SS087'; 
@@ -82,7 +69,6 @@ iN = '_ss_passiveTrials';
 [block,~] = alignsource(root,mouseName,thisDate,passiveblock,timelineExpNum);
 cond = [block.trial.condition];
 % timings
-<<<<<<< Updated upstream
 blockFlipsTimes = block.stimWindowUpdateTimes; 
 pdFlipTimes = readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',passiveblock,timelineExpNum)));
 co = readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',passiveblock,timelineExpNum)));
@@ -98,40 +84,16 @@ toPDTimeFrameLag = @(t)t*co(1) + lag;
 if isfield(block.trial, 'stimulusCueStartedTime')
     s.stimOnTimes = follows(...
         toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), pdFlipTimes);
-=======
-blockTimes = block.stimWindowUpdateTimes; 
-photodiodeTimes = readNPY(fullfile(root,sprintf('alignments\\block_%d_sw_in_timeline_%d.npy',passiveblock,timelineExpNum)));
-blockToTL = readNPY(fullfile(root,sprintf('alignments\\correct_block_%d_to_timeline_%d.npy',passiveblock,timelineExpNum)));
-blockToTL = blockToTL';
-s.coeff = blockToTL';
-s.blockToPdTimeFrame = @(t)t*blockToTL(1) + blockToTL(2);
-s.pdToBlockTImeFrame = @(t)(t - blockToTL(2))/blockToTL(1);
-%offset to place every block flip after corresponding photodiode flip
-lag = -max(blockTimes*blockToTL(1) - photodiodeTimes);
-toPDTimeFrameLag = @(t)t*blockToTL(1) + lag;
- 
-if isfield(block.trial, 'stimulusCueStartedTime')
-    s.stimOnTimes = follows(...
-        toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), photodiodeTimes);
->>>>>>> Stashed changes
     s.stimOnTimes = applyCorrection(s.stimOnTimes, bTLtoMaster);
 end
 
 if isfield(block.trial, 'stimulusCueEndedTime')
     s.stimOffTimes = follows(...
-<<<<<<< Updated upstream
         toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), pdFlipTimes);
     s.stimOffTimes = applyCorrection(s.stimOffTimes, bTLtoMaster);
 end
 
 %% fit rest of the times in the block
-=======
-        toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), photodiodeTimes);
-    s.stimOffTimes = applyCorrection(s.stimOffTimes, bTLtoMaster);
-end
-
-% fit rest of the times in the block
->>>>>>> Stashed changes
 blockfit = robustfit([block.trial.stimulusCueStartedTime], s.stimOnTimes);
 fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
 
@@ -140,7 +102,6 @@ s.onsetToneTime=reshape(fitblocktimes([block.trial.onsetToneSoundPlayedTime]),2,
 s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
 s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
 
-<<<<<<< Updated upstream
 
 %% select relevant trials 
 %ix_onset_tone = find([cond.interactiveOnsetToneRelAmp]>0.0001);
@@ -149,9 +110,6 @@ s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
 %ix_stimulus = find([cond.interactiveOnsetToneRelAmp]<0.0001 & [block.trial.feedbackType]==-1 & [cond.negFeedbackSoundAmp]==0);
 
 %% WRITE NPY
-=======
-% WRITE NPY
->>>>>>> Stashed changes
 % ITI start
 alf.writeEventseries(alfDir,sprintf('%s',iN), s.trialStartedTime, [], []);
 %visual stimulus info 
@@ -161,14 +119,9 @@ writeNPY(contr(1,:),fullfile(alfDir, sprintf('%s.contrastLeft.npy',iN)));
 writeNPY(contr(2,:),fullfile(alfDir, sprintf('%s.contrastRight.npy',iN)));
 writeNPY(stimDist,fullfile(alfDir,sprintf('%s.stimuliDistance.npy',iN)));
 
-<<<<<<< Updated upstream
 %%
 alf.writeInterval(alfDir,sprintf('%s.stimOn',iN),s.stimOnTimes,s.stimOffTimes, [],[]);
 %%
-=======
-alf.writeInterval(alfDir,sprintf('%s.stimOn',iN),s.stimOnTimes,s.stimOffTimes, [],[]);
-
->>>>>>> Stashed changes
 %audio information from onset tone
 onset_tone=[cond.interactiveOnsetToneRelAmp];
 writeNPY(onset_tone,fullfile(alfDir,sprintf('%s.goCue_amp.npy',iN)));
@@ -181,7 +134,6 @@ alf.writeInterval(alfDir,sprintf('%s.feedbackOn',iN), s.feedbackOnTime,s.feedbac
 writeNPY([cond.negFeedbackSoundAmp], fullfile(alfDir, sprintf('%s.feedback_amp.npy',iN)));
 
 %% %%%%%%%% write choice world %%%%%%%%
-<<<<<<< Updated upstream
 iN='_ss_ChoiceWorldTrials';
 %iNIBL='_ibl_trials';
 [block,~]=alignsource(root,mouseName,thisDate,taskblock,timelineExpNum);
@@ -219,50 +171,6 @@ s.feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]);
 s.feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
 s.interactiveStartedTime=fitblocktimes([block.trial.interactiveStartedTime]);
 s.interactiveEndedTime=fitblocktimes([block.trial.interactiveStartedTime]);
-=======
-iN = '_ss_trials';
-data = load(fullfile(root, num2str(taskblock), ...
-    sprintf('%s_%d_%s_Block.mat', thisDate, taskblock, mouseName)));
-block = data.block;
-cond = [block.trial.condition];
-% timings
-blockTimes = block.stimWindowUpdateTimes; 
-photodiodeTimes = readNPY(fullfile(alignDir, ...
-    sprintf('block_%d_sw_in_timeline_%d.npy', taskblock, timelineExpNum)));
-blockToTL = readNPY(fullfile(alignDir, ...
-    sprintf('correct_block_%d_to_timeline_%d.npy', taskblock, timelineExpNum)));
-% s.blockToPdTimeFrame = @(t)t*blockToTL(1) + blockToTL(2);
-% s.pdToBlockTImeFrame = @(t)(t - blockToTL(2))/blockToTL(1);
-% offset to place every block flip after corresponding photodiode flip
-lag = -max(blockTimes * blockToTL(1) - photodiodeTimes);
-toPDTimeFrameLag = @(t)t*blockToTL(1) + lag;
-
-if isfield(block.trial, 'stimulusCueStartedTime')
-    stimOnTimes = follows(...
-        toPDTimeFrameLag([block.trial.stimulusCueStartedTime]), photodiodeTimes);
-end
-
-if isfield(block.trial, 'stimulusCueEndedTime') % the last trial is not always completed, hence off times can be shorter array than on times
-    stimOffTimes = follows(...
-        toPDTimeFrameLag([block.trial.stimulusCueEndedTime]), photodiodeTimes);
-end
-
-% fit rest of the times in the block
-
-% NOTE: best to use Nick's code as blueprint:
-% kilotrodeRig\exampleAlignment!
-
-blockfit = robustfit([block.trial.stimulusCueStartedTime], s.stimOnTimes);
-fitblocktimes = @(t)t*blockfit(2) + blockfit(1);
-trialStartedTime = applyCorrection([block.trial.trialStartedTime], blockToTL);
-% trialStartedTime: from this time on, mouse can start trial by holding 
-% wheel still, but it doesn't necessarily do so immediately
-onsetToneTime = reshape(fitblocktimes([block.trial.onsetToneSoundPlayedTime]),2,[]); % this has two arrays _ I think it measures on and offsets!
-feedbackOnTime=fitblocktimes([block.trial.feedbackStartedTime]); 
-feedbackOffTime=fitblocktimes([block.trial.feedbackEndedTime]);
-interactiveStartedTime=fitblocktimes([block.trial.interactiveStartedTime]);
-interactiveEndedTime=fitblocktimes([block.trial.interactiveStartedTime]);
->>>>>>> Stashed changes
 
 
 %visual stimulus info 
