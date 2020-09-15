@@ -2,11 +2,106 @@
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';
 folderCode = 'C:\dev\workspace\CortexLab';
-folderPlots = 'C:\STORAGE\OneDrive - University College London\Lab\RESULTS\wheelTask\pupil';
+folderPlots = 'C:\STORAGE\OneDrive - University College London\Lab\RESULTS\wheelTask\Plots\pupil';
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')))
 addpath(fullfile(folderCode))
+
+%% Collect data: pupil during pre-stim, choices, outcomes
+choice = {}; % -1 left, 0 nogo, 1 right
+outcome = {}; % 0 incorrect, 1 correct
+pupilSize = {};
+subjects = {};
+dates = {};
+
+subjDirs = dir(fullfile(folderData, 'SS*'));
+k = 1;
+for subj = 1:length(subjDirs)
+    name = subjDirs(subj).name;
+    dateDirs = dir(fullfile(folderData, name, '2*'));
+    for dt = 1:length(dateDirs)
+        date = dateDirs(dt).name;
+        if ~isfile(fullfile(folderData, name, date, 'eye.diameter.npy'))
+            continue
+        end
+        subjects{k} = name;
+        dates{k} = date;
+        
+        % load data
+        pupil = readNPY(fullfile(folderData, name, date, 'eye.diameter.npy'));
+        pupilTime = readNPY(fullfile(folderData, name, date, 'eye.timestamps.npy'));
+        stimT = readNPY(fullfile(folderData, name, date, '_ibl_trials.stim_intervals.npy'));
+        cueInteractiveDelays = readNPY(fullfile(folderData, name, date, '_ibl_trials.cueInteractiveDelay.npy'));
+        ch = readNPY(fullfile(folderData, name, date, '_ibl_trials.choice.npy'));
+        fb = readNPY(fullfile(folderData, name, date, '_ibl_trials.feedbackType.npy'));
+        
+        % collect task events
+        ch(ch == 1) = -1;
+        ch(ch == 2) = 1;
+        ch(ch == 3) = 0;
+        choice{k} = ch;
+        outcome{k} = fb;
+        
+        % collect pupil responses during pre-stim
+        window = [-0.6 0];
+        ppl = traces.getAlignedTraces(pupil, pupilTime, stimT(:,1), window);
+        pupilSize{k} = nanmean(ppl,1)';
+        
+        k = k + 1;
+    end
+end
+
+%% Plot pupil size versus action (go/nogo) and outcome
+numPrctl = 10;
+for k = 1:length(subjects)
+    ppl = pupilSize{k};
+    prctl = prctile(ppl, 0:100/numPrctl:100);
+    prctl(1) = prctl(1)-1;
+    prctl(end) = prctl(end)+1;
+    [~,~,bin] = histcounts(ppl, prctl);
+    meanPpl = NaN(numPrctl, 1);
+    meanAction = NaN(numPrctl, 1);
+    semAction = NaN(numPrctl, 1);
+    meanOutcome = NaN(numPrctl, 1);
+    semOutcome = NaN(numPrctl, 1);
+    for b = 1:numPrctl
+        ind = bin == b;
+        meanPpl(b) = nanmean(ppl(ind));
+        meanAction(b) = nanmean(abs(choice{k}(ind)));
+        semAction(b) = nanstd(abs(choice{k}(ind))) / sqrt(sum(ind));
+        meanOutcome(b) = nanmean(outcome{k}(ind));
+        semOutcome(b) = nanstd(outcome{k}(ind)) / sqrt(sum(ind));
+    end
+    
+    figure('Position', [680 560 1120 420])
+    subplot(1,2,1)
+    hold on
+    fill([meanPpl; flip(meanPpl)], [meanAction+semAction; ...
+        flip(meanAction-semAction)], 'k', 'EdgeColor', 'none', ...
+        'FaceColor', 'k', 'FaceAlpha', 0.3)
+    plot(meanPpl, meanAction, 'k', 'LineWidth', 2)
+    set(gca, 'box', 'off')
+    xlabel('Pupil size')
+    ylabel('P(action = Go)')
+    title(sprintf('%s %s', subjects{k}, dates{k}))
+    
+    subplot(1,2,2)
+    hold on
+    fill([meanPpl; flip(meanPpl)], [meanOutcome+semOutcome; ...
+        flip(meanOutcome-semOutcome)], 'k', 'EdgeColor', 'none', ...
+        'FaceColor', 'k', 'FaceAlpha', 0.3)
+    plot(meanPpl, meanOutcome, 'k', 'LineWidth', 2)
+    set(gca, 'box', 'off')
+    xlabel('Pupil size')
+    ylabel('P(choice = correct)')
+    
+    savefig(fullfile(folderPlots, 'pupil_vs_action_outcome', ...
+        sprintf('%s_%s', subjects{k}, dates{k})))
+    saveas(gcf, fullfile(folderPlots, 'pupil_vs_action_outcome', ...
+        sprintf('%s_%s.png', subjects{k}, dates{k})))
+    close gcf
+end
 
 %% Align pupil to task events
 pre = 2;

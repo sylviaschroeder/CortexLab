@@ -1,6 +1,6 @@
 %% Define data
-% label = 'neurons';
-label = 'boutons';
+label = 'neurons';
+% label = 'boutons';
 
 % good example dataset
 % (1) SC neurons
@@ -28,6 +28,8 @@ label = 'boutons';
 % expDark = 1;
 % planes = 5;
 if strcmp(label, 'neurons')
+%     exSet = 2;
+%     exUnits = [];
     exSet = 7;
     exUnits = [1 153; 1 171];
 % OLD:
@@ -777,9 +779,9 @@ xlabel('Percentile of pupil diameter')
 ylabel('Percentile of running speed')
 
 %% (8) Plot traces of all neurons and first PC (one dataset)
-exps = [1 3]; % 1: gratings, 2: gray screen, 3: darkness
-% corrs = corrsPupil;
-corrs = corrsRunning;
+exps = [1 2]; % 1: gratings, 2: gray screen, 3: darkness
+corrs = corrsPupil;
+% corrs = corrsRunning;
 
 valid = cell(1,length(exps));
 cellIDs = [];
@@ -896,14 +898,14 @@ for exp = 1:length(exps)
             convWindow, 'valid');
     end
     % for sSC neurons
-%     centerIndex(exp) = floor(size(calciumTraces{exp},1)/2);
-%     ind = true(size(calciumTraces{exp},1),1);
-%     ind(centerIndex(exp)+1:end) = false;
-%     ind(isnan(nonVisual{2,exp})) = false;
-%     rhos_b{exp} = corr(nonVisual{2,exp}(ind), ...
-%         filteredTraces{exp}(ind,:))';
+    centerIndex(exp) = floor(size(calciumTraces{exp},1)/2);
+    ind = true(size(calciumTraces{exp},1),1);
+    ind(centerIndex(exp)+1:end) = false;
+    ind(isnan(nonVisual{2,exp})) = false;
+    rhos_b{exp} = corr(nonVisual{2,exp}(ind), ...
+        filteredTraces{exp}(ind,:))';
     % for boutons
-    centerIndex(exp) = 0;
+%     centerIndex(exp) = 0;
 end
 
 valid = all(cat(2,valid{:}),2);
@@ -1006,13 +1008,13 @@ for exp = 1:length(exps)
     end
 %     ylim([-22 max([p 1])])
     % for sSC neurons
-%     title(sprintf('%s, %s %s, %dth PC - running: %.2f, - pupil: %.2f (sorted on first half)', ...
-%         stimuli{exps(exp)}, db(exSet).subject, db(exSet).date, best, r_corr, p_corr), ...
-%         'Interpreter', 'none')
-    % for boutons
-    title(sprintf('%s, %s %s, %dth PC - running: %.2f, - pupil: %.2f (sorted by pupil in gratings)', ...
+    title(sprintf('%s, %s %s, %dth PC - running: %.2f, - pupil: %.2f (sorted on first half)', ...
         stimuli{exps(exp)}, db(exSet).subject, db(exSet).date, best, r_corr, p_corr), ...
         'Interpreter', 'none')
+    % for boutons
+%     title(sprintf('%s, %s %s, %dth PC - running: %.2f, - pupil: %.2f (sorted by pupil in gratings)', ...
+%         stimuli{exps(exp)}, db(exSet).subject, db(exSet).date, best, r_corr, p_corr), ...
+%         'Interpreter', 'none')
     ax(1) = gca;
     leg = legend('Pupil','Running','PC',num2str(exUnits(1,:)), ...
         num2str(exUnits(2,:)),'stimulus');
