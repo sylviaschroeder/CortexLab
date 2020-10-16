@@ -529,7 +529,14 @@ ind = a > pi;
 a(ind) = 2*pi - a(ind);
 ind = a < - pi;
 a(ind) = 2*pi + a(ind);
-circ_mtest(a, 0, 1e-100)
+p = 1e-10;
+while true
+    h = circ_mtest(a, 0, p);
+    if ~h
+        break
+    end
+    p = p * 10;
+end
 
 ind = all(p_DSI < 0.05,2);
 figure
@@ -551,7 +558,14 @@ ind = a > pi;
 a(ind) = 2*pi - a(ind);
 ind = a < - pi;
 a(ind) = 2*pi + a(ind);
-circ_mtest(a, 0, 1e-10)
+p = 1e-10;
+while true
+    h = circ_mtest(a, 0, p);
+    if ~h
+        break
+    end
+    p = p * 10;
+end
 
 figure
 hold on
