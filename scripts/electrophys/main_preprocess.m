@@ -2,7 +2,7 @@
 % db_ephys_opticTract
 k=1;
 db(1).subject = 'SS088';
-db(1).date = '2018-02-03';
+db(1).date = '2018-02-04';
 
 subject = db(k).subject;
 date = db(k).date;
@@ -29,6 +29,7 @@ addpath('C:\STORAGE\workspaces\Rigbox\cortexlab')
 addpath(genpath('C:\STORAGE\workspaces\Rigbox\cb-tools'))
 addpath(genpath(fullfile(folderTools, 'spikes')));
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
+addpath(genpath(fullfile(folderTools, 'kilotrodeRig')));
 addpath(genpath(fullfile(folderScript)));
 
 %% Get basic info

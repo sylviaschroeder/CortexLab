@@ -304,7 +304,7 @@ db(k).expTL = 2;
 db(k).expTask = 3;
 db(k).expNoise = 4;
 db(k).expNoiseGray = 5;
-db(k).expPassive = 6; % ? not mentioned in lab book
+db(k).expPassive = 6; % not mentioned in lab book but data look fine
 
 k=k+1;
 db(k).subject = 'SS093';
