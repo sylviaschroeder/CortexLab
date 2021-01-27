@@ -1,8 +1,8 @@
 %% Define dataset
 % db_ephys_opticTract
 k=1;
-db(1).subject = 'SS088';
-db(1).date = '2018-02-04';
+db(1).subject = 'SS093';
+db(1).date = '2018-05-28';
 
 subject = db(k).subject;
 date = db(k).date;
@@ -293,7 +293,7 @@ bTLtoMaster = readNPY(fullfile(alignDir, ...
 bEphysToMaster = readNPY(fullfile(alignDir, ...
     sprintf('correct_ephys_%s_to_ephys_%s.npy', sp(2).name, ...
     sp(1).name)));
-for probe = 1:length(sp)
+for probe = 2:length(sp)
     ksDir = getKSdir(subject, date, sp(probe).name);
     [~,~,sd] = ksDriftmap(ksDir);
     sp(probe).spikeDepths = sd;  % more accurate version of depths based on PCs.

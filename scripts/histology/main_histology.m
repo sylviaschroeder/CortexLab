@@ -1,6 +1,6 @@
 %% Folders
 % Set paths for histology images and directory to save slice/alignment
-im_path = 'J:\Histology\SS093';
+im_path = 'J:\Histology\SS092';
 slice_path = [im_path filesep 'slices'];
 
 % code
@@ -34,7 +34,7 @@ st = loadStructureTree([allen_atlas_path filesep 'structure_tree_safe_2017.csv']
 
 % Set resize factor
 % resize_factor = []; % (slides ome.tiff: auto-resize ~CCF size 10um/px)
-resize_factor = 0.163; % (slides tiff: resize factor) here images is 1.63um/px
+resize_factor = 0.163; % (slides tiff: resize factor) here images are 1.63um/px
 
 % Set slide or slice images
 slice_images = false; % (images are slides - extract individual slices)

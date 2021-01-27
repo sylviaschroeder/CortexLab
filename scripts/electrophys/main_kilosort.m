@@ -17,8 +17,8 @@ addpath(genpath(fullfile(folderCode)))
 %% Load database
 db = db_ephys_task;
 
-for k = 13:15 %length(db)
-    for pr = 1:length(db(k).probes)
+for k = 30 %length(db)
+    for pr = 2:3 %1:length(db(k).probes)
         probe = db(k).probes{pr};
         fprintf('\n%s %s %s\n', db(k).subject, db(k).date, probe)
         %% Download data

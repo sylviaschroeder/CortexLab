@@ -8,7 +8,7 @@ function writeEphysToNPY(mouseName, date, tags)
 % cluster.groups (1 MUA, 2 good, 3 unsorted)
 % templates.waveforms ([template x sample x subchan])
 % templates.waveformsChannels ([template x subchan])
-%   channels.localCoordinates ([chan x 2], x-coord, y-coord.
+% channels.localCoordinates ([chan x 2], x-coord, y-coord.
 
 useDriftmap = true;
 numWfChans = 10;
