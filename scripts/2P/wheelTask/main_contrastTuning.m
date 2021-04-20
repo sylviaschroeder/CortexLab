@@ -1,3 +1,11 @@
+% 1. Plot contrast tuning curve for each neuron, during small and large
+% pupil
+% 2. Plot tuning curves of all neurons, color-coded, each row is one
+% neuron. Separate trials by conditions (small/large pupil, go/no-go 
+% choice, correct/incorrect) and make one plot for each condition.
+% 3. Scatter plots of neural responses and pupil size, at period before
+% stimulus onset.
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

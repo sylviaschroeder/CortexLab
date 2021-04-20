@@ -1,3 +1,11 @@
+% Model neural responses (additive model) during certain periods
+% (pre-stimulus, stimulus, feedback) based on task events and behaviour
+% (choice, outcome: correct/incorrect, pupil size, choice in previous
+% trial, outcome in previous trial, stimulus).
+% Scatter plot: explained variance of full model against explained variance 
+% of model that lacks one of the variables (to quantify importance of that
+% variable).
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

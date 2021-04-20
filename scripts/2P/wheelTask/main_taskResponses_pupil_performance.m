@@ -1,3 +1,7 @@
+% Plot response of all neurons, one per row: average response after beep
+% or after feedback, trials separated by pupil size (large/small) and by
+% performance (hit, false alarm, correct rejection, miss).
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

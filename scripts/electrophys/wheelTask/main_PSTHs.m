@@ -1,5 +1,3 @@
-% TODO: check firing rate -> SS093 24.05.2018 K1 unit 134!
-
 %% Parameters
 limits = [-0.2 0.6];
 moveTimeThresh = 0.2;
