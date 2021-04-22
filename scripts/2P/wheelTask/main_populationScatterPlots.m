@@ -1,3 +1,9 @@
+% Scatter plots across all recorded neurons. Each data point is for one
+% neuron: response to a certain task event (pre-stimulus, stimulus,
+% feedback) in one condition versus the other condition (small/large pupil,
+% go/no-go choice, incorrect/correct choice, previous choice was go/no-go,
+% previous choice was incorrect/correct)
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

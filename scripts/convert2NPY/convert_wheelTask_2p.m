@@ -2,17 +2,30 @@
 timeGap = 600; %in s, gap between experiments
 smoothWheel = 0.15; % in s
 
-%% Load database
-db_wheelTask
-
 %% Folders
-folderBase = 'C:\STORAGE\OneDrive - University College London\Lab';
-folderROIData = fullfile(folderBase, 'DATA\InfoStructs');
-folderSave = fullfile(folderBase, 'DATA\NPY\task_2p');
+folderTools = 'C:\STORAGE\workspaces';
+folderScript = 'C:\dev\workspace\CortexLab';
+
+folderBaseUCL = 'C:\STORAGE\OneDrive - University College London\Lab';
+folderBaseSussex = 'C:\STORAGE\OneDrive - University of Sussex\Lab';
+folderROIData = fullfile(folderBaseUCL, 'DATA\InfoStructs');
+folderSave = fullfile(folderBaseSussex, 'DATA\NPY\task_2p');
 folderTimeline = '\\ZSERVER.cortexlab.net\Data\expInfo';
 folderConfig = '\\ZSERVER.cortexlab.net\Code\Rigging\config';
 folderEyeRaw = '\\ZSERVER.cortexlab.net\Data\EyeCamera';
-folderEyeDLC = fullfile(folderBase, 'DATA\DataToPublish\task2P');
+folderEyeDLC = fullfile(folderBaseUCL, 'DATA\DataToPublish\task2P');
+
+%% Add paths
+addpath(genpath(fullfile(folderTools, 'npy-matlab')));
+addpath(genpath(fullfile(folderTools, 'wheelAnalysis')));
+addpath('\\ZSERVER.cortexlab.net\Code\2photonPipeline')
+addpath(genpath('C:\STORAGE\workspaces\Rigbox\cb-tools'))
+addpath('C:\STORAGE\workspaces\Rigbox')
+addpath('C:\STORAGE\workspaces\Rigbox\cortexlab')
+addpath(genpath(fullfile(folderScript)));
+
+%% Load database
+db_wheelTask
 
 %% Collect data
 for k = 1:length(db)
@@ -60,7 +73,7 @@ for k = 1:length(db)
     posFeedbackPeriod = [];
     negFeedbackPeriod = [];
     stimSigma = [];
-    stimDist = [];
+    stimAzi = [];
     stimAltitude = [];
     stimTargetThreshold = [];
     stimSpatFreq = [];
@@ -202,7 +215,10 @@ for k = 1:length(db)
             stimulus_exp(i,:) = block_exp.trial(i).condition.visCueContrast;
             repeated_exp(i) = block_exp.trial(i).condition.repeatNum;
         end
-        choice_exp = cat(1, block_exp.trial.responseMadeID);
+        ch = cat(1, block_exp.trial.responseMadeID);
+        ch(ch == 1) = -1;
+        ch(ch == 2) = 0;
+        ch(ch == 3) = 1;
         outcome_exp = cat(1, block_exp.trial.feedbackType) == 1;
         
         time_behaviour = [time_behaviour; behTime_exp'+t0];
@@ -220,7 +236,7 @@ for k = 1:length(db)
         trialEnd = [trialEnd; end_exp+t0];
         stimulus = [stimulus; stimulus_exp];
         repeated = [repeated; repeated_exp];
-        choice = [choice; choice_exp];
+        choice = [choice; ch];
         outcome = [outcome; outcome_exp];
         rewardAmount = [rewardAmount; ...
             ones(numTrials,1) * block_exp.parameters.rewardVolume];
@@ -236,8 +252,8 @@ for k = 1:length(db)
             ones(numTrials,1) * block_exp.parameters.negativeFeedbackPeriod];
         stimSigma = [stimSigma; ...
             repmat(block_exp.parameters.cueSigma', numTrials, 1)];
-        stimDist = [stimDist; ...
-            ones(numTrials,1) * block_exp.parameters.distBetweenTargets];
+        stimAzi = [stimAzi; ...
+            ones(numTrials,1) * block_exp.parameters.distBetweenTargets ./ 2];
         stimAltitude = [stimAltitude; ...
             ones(numTrials,1) * block_exp.parameters.targetAltitude];
         stimTargetThreshold = [stimTargetThreshold; ...
@@ -248,7 +264,7 @@ for k = 1:length(db)
             ones(numTrials,1) * block_exp.parameters.targetOrientation];
         
         writeNPY(frameTimes([1 end])' + t0, fullfile(folderSession, ...
-            sprintf('_ss_recordings.%02d_intervals.npy', iExp)));
+            sprintf('_ss_recordings.task%02d_intervals.npy', iExp)));
         
         t0 = time(end) + timeGap;
     end
@@ -260,6 +276,7 @@ for k = 1:length(db)
         fullfile(folderSession, '_ss_2pRois.ids.npy'));
     writeNPY(xyzPos(valid,:), ...
         fullfile(folderSession, '_ss_2pRois.xyz.npy'));
+    isGad(isGad == 0) = NaN;
     writeNPY(isGad(valid), ...
         fullfile(folderSession, '_ss_2pRois.isGad.npy'));
     writeNPY(timeShifts, fullfile(folderSession, '_ss_2pPlanes.delay.npy'));
@@ -268,58 +285,58 @@ for k = 1:length(db)
         fullfile(folderSession, '_ss_2pCalcium.dff.npy'));
     
     writeNPY(time_behaviour, ...
-        fullfile(folderSession, '_ibl_wheel.timestamps.npy'));
+        fullfile(folderSession, '_ss_wheel.timestamps.npy'));
     writeNPY(wheelPos, ...
-        fullfile(folderSession, '_ibl_wheel.position.npy'));
+        fullfile(folderSession, '_ss_wheel.position.npy'));
     writeNPY(wheelVelocity, ...
-        fullfile(folderSession, '_ibl_wheel.velocity.npy'));
+        fullfile(folderSession, '_ss_wheel.velocity.npy'));
     writeNPY(lickPiezo, ...
-        fullfile(folderSession, '_ibl_lickPiezo.raw.npy'));
+        fullfile(folderSession, '_ss_lickPiezo.raw.npy'));
     
     writeNPY(eyePos, fullfile(folderSession, 'eye.xyPos.npy'));
     writeNPY(eyeDiameter, fullfile(folderSession, 'eye.diameter.npy'));
     writeNPY(eyeTime, fullfile(folderSession, 'eye.timestamps.npy'));
     
     writeNPY([trialStart trialEnd], ...
-        fullfile(folderSession, '_ibl_trials.intervals.npy'));
+        fullfile(folderSession, '_ss_trials.intervals.npy'));
     writeNPY([stimOnTimes stimOffTimes], ...
-        fullfile(folderSession, '_ibl_trials.stim_intervals.npy'));
+        fullfile(folderSession, '_ss_trials.stimOn_intervals.npy'));
     writeNPY(beepTimes, ...
-        fullfile(folderSession, '_ibl_trials.goCue_times.npy'));
+        fullfile(folderSession, '_ss_trials.goCue_times.npy'));
     writeNPY(feedbackTimes, ...
-        fullfile(folderSession, '_ibl_trials.feedback_times.npy'));
+        fullfile(folderSession, '_ss_trials.feedback_times.npy'));
     writeNPY(stimulus(:,1), ...
-        fullfile(folderSession, '_ibl_trials.contrastLeft.npy'));
+        fullfile(folderSession, '_ss_trials.contrastLeft.npy'));
     writeNPY(stimulus(:,2), ...
-        fullfile(folderSession, '_ibl_trials.contrastRight.npy'));
+        fullfile(folderSession, '_ss_trials.contrastRight.npy'));
     writeNPY(repeated, ...
-        fullfile(folderSession, '_ibl_trials.repNum.npy'));
+        fullfile(folderSession, '_ss_trials.repNum.npy'));
     writeNPY(choice, ...
-        fullfile(folderSession, '_ibl_trials.choice.npy'));
+        fullfile(folderSession, '_ss_trials.choice.npy'));
     writeNPY(outcome, ...
-        fullfile(folderSession, '_ibl_trials.feedbackType.npy'));
+        fullfile(folderSession, '_ss_trials.feedbackType.npy'));
     writeNPY(rewardAmount, ...
-        fullfile(folderSession, '_ibl_trials.rewardVolume.npy'));
+        fullfile(folderSession, '_ss_trials.rewardVolume.npy'));
     writeNPY(preStimQuiescentPeriod, ...
-        fullfile(folderSession, '_ibl_trials.preStimQuiescentPeriod.npy'));
+        fullfile(folderSession, '_ss_trials.preStimDelay_intervals.npy'));
     writeNPY(cueInteractiveDelay, ...
-        fullfile(folderSession, '_ibl_trials.cueInteractiveDelay.npy'));
+        fullfile(folderSession, '_ss_trials.interactiveDelay_intervals.npy'));
     writeNPY(responseWindow, ...
-        fullfile(folderSession, '_ibl_trials.responseWindow.npy'));
+        fullfile(folderSession, '_ss_trials.responseWindow.npy'));
     writeNPY(posFeedbackPeriod, ...
-        fullfile(folderSession, '_ibl_trials.posFeedbackPeriod.npy'));
+        fullfile(folderSession, '_ss_trials.positiveFeedbackPeriod.npy'));
     writeNPY(negFeedbackPeriod, ...
-        fullfile(folderSession, '_ibl_trials.negFeedbackPeriod,.npy'));
+        fullfile(folderSession, '_ss_trials.negativeFeedbackPeriod.npy'));
     writeNPY(stimSigma, ...
-        fullfile(folderSession, '_ibl_trials.stimSigma.npy'));
-    writeNPY(stimDist, ...
-        fullfile(folderSession, '_ibl_trials.stimDist.npy'));
+        fullfile(folderSession, '_ss_trials.stimSigma.npy'));
+    writeNPY(stimAzi, ...
+        fullfile(folderSession, '_ss_trials.stimAzimuth.npy'));
     writeNPY(stimAltitude, ...
-        fullfile(folderSession, '_ibl_trials.stimAltitude.npy'));
+        fullfile(folderSession, '_ss_trials.stimAltitude.npy'));
     writeNPY(stimTargetThreshold, ...
-        fullfile(folderSession, '_ibl_trials.stimTargetThreshold.npy'));
+        fullfile(folderSession, '_ss_trials.stimTargetThreshold.npy'));
     writeNPY(stimSpatFreq, ...
-        fullfile(folderSession, '_ibl_trials.stimSpatFreq.npy'));
+        fullfile(folderSession, '_ss_trials.stimSpatFreq.npy'));
     writeNPY(stimOri, ...
-        fullfile(folderSession, '_ibl_trials.stimOrientation.npy'));
+        fullfile(folderSession, '_ss_trials.stimOrientation.npy'));
 end

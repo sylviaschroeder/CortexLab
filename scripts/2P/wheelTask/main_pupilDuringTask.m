@@ -1,3 +1,13 @@
+% 1. Plot probability of go choice (or correct choice) as a function of
+% pupil size.
+% 2. Plot pupil size trace aligned to task events (stim onset, go cue
+% (beep), time of feedback). Separate by various conditions (stim contrast,
+% go/no-go, correct/incorrect, ...)
+% 3. Plot pupil size across time, and plot moving window of go choices and
+% correct choice across time.
+% 4. Scatter plot: pupil size during baseline vs performance in current or
+% previous trial
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

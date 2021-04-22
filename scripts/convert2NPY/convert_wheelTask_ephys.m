@@ -42,16 +42,15 @@ end
 alignDir = fullfile(root, 'alignments');
 
 %% Basic info
-% tlToMaster = readNPY(fullfile(alignDir, ...
-%     sprintf('correct_timeline_%d_to_ephys_%s.npy', db(k).expTL, db(k).probes{1})));
-% % load timeline
-% d = load(fullfile(root, num2str(db(k).expTL), ...
-%     sprintf('%s_%d_%s_Timeline.mat', date, db(k).expTL, mouseName)));
-% tl = d.Timeline;
+tlToMaster = readNPY(fullfile(alignDir, ...
+    sprintf('correct_timeline_%d_to_ephys_%s.npy', db(k).expTL, db(k).probes{1})));
+% load timeline
+d = load(fullfile(root, num2str(db(k).expTL), ...
+    sprintf('%s_%d_%s_Timeline.mat', date, db(k).expTL, mouseName)));
+tl = d.Timeline;
 
 %% write ephys data for each probe
-% io.writeEphysToNPY(mouseName, date, db(k).probes);
-io.writeEphysToNPY(mouseName, date, {'K1'});
+io.writeEphysToNPY(mouseName, date, db(k).probes);
 
 % % write position of probes to csv file
 % hemisphere = cell(length(db(k).probes),1);

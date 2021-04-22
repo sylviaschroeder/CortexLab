@@ -1,3 +1,12 @@
+% Make 3 subplots (showing variations in time during experiment):
+% (1) Rate of go choices and rate of correct choices
+% (2) Pupil diameter
+% (3) Neural activity
+
+% 1. Plot continuous activity
+% 2. Plot activity during certain task events: pre-stim period, stimulus,
+% feedback
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';

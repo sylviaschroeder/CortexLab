@@ -1,3 +1,6 @@
+% Model pupil size (before stimulus onset, i.e. baseline) based on
+% responses of all recorded neurons.
+
 %% Folders
 folderData = 'C:\STORAGE\OneDrive - University College London\Lab\DATA\NPY\task_2p';
 folderTools = 'C:\STORAGE\workspaces';
