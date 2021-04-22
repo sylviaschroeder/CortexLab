@@ -107,8 +107,8 @@ for ex = 1:size(examples,1)
                 'Color', 'r', 'LineWidth', 2);
             x0 = x0 + traceDur + xDist;
             if st==1
-                h(1) = h2;
-                h(2) = h1;
+                h(1) = h1;
+                h(2) = h2;
             end
         end
         axis tight
