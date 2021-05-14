@@ -3,14 +3,16 @@
 
 %% Folders
 % UCL PC:
-% folderTools = 'C:\STORAGE\workspaces';
-% folderScript = 'C:\dev\workspace\CortexLab';
-% folderData = '\\zubjects.cortexlab.net\Subjects';
-folderEyeData = '\\ZSERVER.cortexlab.net\Data\EyeCamera';
-% Sussex PC:
-folderTools = 'C:\dev\tools';
+folderTools = 'C:\STORAGE\workspaces';
 folderScript = 'C:\dev\workspace\CortexLab';
-folderData = 'E:\Subjects';
+folderData = '\\zubjects.cortexlab.net\Subjects';
+folderEyeData = '\\ZSERVER.cortexlab.net\Data\EyeCamera';
+% % Sussex PC:
+% folderTools = 'C:\dev\tools';
+% folderScript = 'C:\dev\workspace\CortexLab';
+% folderData = 'E:\Subjects';
+
+folderShared = 'C:\STORAGE\OneDrive - University of Sussex\Projects\2021_Joanna_competition in SC\Data\';
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab', 'npy-matlab')));
@@ -22,9 +24,9 @@ addpath(genpath(fullfile(folderScript)));
 
 %% Define dataset and prepare folders
 db = db_ephys_task;
-k = 5;
+% k = 5;
 
-% for k = 2:length(db)
+for k = 1:length(db)
 
 mouseName = db(k).subject; 
 date = db(k).date;
@@ -34,23 +36,23 @@ root = fullfile(folderData, mouseName, date);
 
 % make alf folder within root
 alfDir = fullfile(root, 'alf');
-if ~exist(alfDir, 'dir')
-   mkdir(alfDir)
-end
+% if ~exist(alfDir, 'dir')
+%    mkdir(alfDir)
+% end
 
 % make align folder
 alignDir = fullfile(root, 'alignments');
 
 %% Basic info
-tlToMaster = readNPY(fullfile(alignDir, ...
-    sprintf('correct_timeline_%d_to_ephys_%s.npy', db(k).expTL, db(k).probes{1})));
-% load timeline
-d = load(fullfile(root, num2str(db(k).expTL), ...
-    sprintf('%s_%d_%s_Timeline.mat', date, db(k).expTL, mouseName)));
-tl = d.Timeline;
+% tlToMaster = readNPY(fullfile(alignDir, ...
+%     sprintf('correct_timeline_%d_to_ephys_%s.npy', db(k).expTL, db(k).probes{1})));
+% % load timeline
+% d = load(fullfile(root, num2str(db(k).expTL), ...
+%     sprintf('%s_%d_%s_Timeline.mat', date, db(k).expTL, mouseName)));
+% tl = d.Timeline;
 
 %% write ephys data for each probe
-io.writeEphysToNPY(mouseName, date, db(k).probes);
+% io.writeEphysToNPY(mouseName, date, db(k).probes);
 
 % % write position of probes to csv file
 % hemisphere = cell(length(db(k).probes),1);
@@ -165,59 +167,59 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 % clear photodiode t 
 
 %% write choice world data
-% % Note: for all experiments: interactive delay was NOT extended when animal
-% % moved wheel during the delay
-% 
-% trialTimes_appr = [];
-% stimTimes_appr = [];
-% goCueTimes_appr = [];
-% feedbackTimes_appr = [];
-% contrasts = [];
-% feedbackType = [];
-% choice = [];
-% repNum = [];
-% preStim = [];
-% delays = [];
-% reward = [];
-% delayIntvals = [];
-% negFb = [];
-% posFb = [];
-% preStimIntvals = [];
-% win = [];
-% stimAlt = [];
-% stimAzi = [];
-% stimOri = [];
-% stimSig = [];
-% stimSpatFr = [];
-% stimThresh = [];
-% interTrial = [];
-% goCueFreq = [];
-% stimOnTimes = [];
-% stimOffTimes = [];
-% goCueTimes = [];
-% extraValveClicks = [];
-% feedbackTimes = [];
-% 
-% for bl = 1:length(db(k).expTask)
-%     fprintf('\nTask block %d\n\n', bl)
-%     
-%     % load block data
-%     d = load(fullfile(root, num2str(db(k).expTask(bl)), ...
-%         sprintf('%s_%d_%s_Block.mat', date, db(k).expTask(bl), mouseName)));
-%     block = d.block;
-%     
-%     if isfield(block, 'trial') % choice world
-%         % load linear fit from block times to timeline times
-%         blockToTL = readNPY(fullfile(alignDir, ...
-%             sprintf('correct_block_%d_to_timeline_%d.npy', db(k).expTask(bl), db(k).expTL)));
-%         % data from block
-%         trials = block.trial;
-%         % excluded unfinished trials
-%         numTrials = length([trials.trialEndedTime]);
-%         trials = trials(1:numTrials);
-%         % trial parameters
-%         cond = [trials.condition];
-%         
+% Note: for all experiments: interactive delay was NOT extended when animal
+% moved wheel during the delay
+
+trialTimes_appr = [];
+stimTimes_appr = [];
+goCueTimes_appr = [];
+feedbackTimes_appr = [];
+contrasts = [];
+feedbackType = [];
+choice = [];
+repNum = [];
+preStim = [];
+delays = [];
+reward = [];
+delayIntvals = [];
+negFb = [];
+posFb = [];
+preStimIntvals = [];
+win = [];
+stimAlt = [];
+stimAzi = [];
+stimOri = [];
+stimSig = [];
+stimSpatFr = [];
+stimThresh = [];
+interTrial = [];
+goCueFreq = [];
+stimOnTimes = [];
+stimOffTimes = [];
+goCueTimes = [];
+extraValveClicks = [];
+feedbackTimes = [];
+
+for bl = 1:length(db(k).expTask)
+    fprintf('\nTask block %d\n\n', bl)
+    
+    % load block data
+    d = load(fullfile(root, num2str(db(k).expTask(bl)), ...
+        sprintf('%s_%d_%s_Block.mat', date, db(k).expTask(bl), mouseName)));
+    block = d.block;
+    
+    if isfield(block, 'trial') % choice world
+        % load linear fit from block times to timeline times
+        blockToTL = readNPY(fullfile(alignDir, ...
+            sprintf('correct_block_%d_to_timeline_%d.npy', db(k).expTask(bl), db(k).expTL)));
+        % data from block
+        trials = block.trial;
+        % excluded unfinished trials
+        numTrials = length([trials.trialEndedTime]);
+        trials = trials(1:numTrials);
+        % trial parameters
+        cond = [trials.condition];
+        
 %         % times from block
 %         trT = reshape(applyCorrection( ...
 %             [[trials.trialStartedTime]'; [trials.trialEndedTime]'], blockToTL), ...
@@ -233,15 +235,15 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %         goCueTimes_appr = [goCueTimes_appr; applyCorrection(goT, tlToMaster)];
 %         fbT = applyCorrection([trials.feedbackStartedTime]', blockToTL);
 %         feedbackTimes_appr = [feedbackTimes_appr; applyCorrection(fbT, tlToMaster)];
-%         % trial parameters/events from block
-%         contrasts = [contrasts; [cond.visCueContrast]']; % [left right]
-%         fbType = [trials.feedbackType]' == 1;
-%         feedbackType = [feedbackType; fbType]; % logical
-%         ch = [trials.responseMadeID]'; % -1 = left, 0 = still, 1 = right
-%         ch(ch == 1) = -1;
-%         ch(ch == 2) = 0;
-%         ch(ch == 3) = 1;
-%         choice = [choice; ch];
+        % trial parameters/events from block
+        contrasts = [contrasts; [cond.visCueContrast]']; % [left right]
+        fbType = [trials.feedbackType]' == 1;
+        feedbackType = [feedbackType; fbType]; % logical
+        ch = [trials.responseMadeID]'; % 1 = left, 2 = right, 3 = still
+        ch(ch == 1) = -1; % -1 = left, 0 = still, 1 = right
+        ch(ch == 2) = 1;
+        ch(ch == 3) = 0;
+        choice = [choice; ch];
 %         repNum = [repNum; [cond.repeatNum]'];
 %         preStim = [preStim; NaN(numTrials,1)];
 %         delays = [delays; NaN(numTrials,1)];
@@ -264,7 +266,7 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %         stimThresh = [stimThresh; repmat(block.parameters.targetThreshold, numTrials, 1)];
 %         interTrial = [interTrial; repmat(block.parameters.interTrialDelay, numTrials, 1)];
 %         goCueFreq = [goCueFreq; repmat(block.parameters.onsetToneFreq, numTrials, 1)];
-%     else % signals
+    else % signals
 %         file = fullfile(alignDir, ...
 %             sprintf('correct_block_%d_to_timeline_wheel_%d.npy', ...
 %             db(k).expTask(bl), db(k).expTL));
@@ -331,8 +333,8 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %         stimThresh = [stimThresh; [block.paramsValues(1:numTrials).stimulusAzimuth]'];
 %         interTrial = [interTrial; [block.paramsValues(1:numTrials).interTrialDelay]'];
 %         goCueFreq = [goCueFreq; [block.paramsValues(1:numTrials).onsetToneFrequency]'];
-%     end
-%     
+    end
+    
 %     % stimulus times
 %     tlStimUpdateTimes = readNPY(fullfile(alignDir, ...
 %         sprintf('block_%d_sw_in_timeline_%d.npy', db(k).expTask(bl), db(k).expTL)));
@@ -459,9 +461,9 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %     ylabel('Smoothed audio w/o beeps')
 %     title(sprintf('Whitenoise times (%s, %s, exp %d)', mouseName, date, db(k).expTask(bl)))
 %     axis tight
-% end
-% 
-% % write variables
+end
+
+% write variables
 % writeNPY(trialTimes_appr, fullfile(alfDir, '_ss_trials.intervals.npy'));
 % writeNPY(stimTimes_appr, fullfile(alfDir, '_ss_trials.approxStimOn_intervals.npy'));
 % writeNPY(goCueTimes_appr, fullfile(alfDir, '_ss_trials.approxGoCue_times.npy'));
@@ -470,7 +472,14 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 % writeNPY(contrasts(:,1), fullfile(alfDir, '_ss_trials.contrastLeft.npy'));
 % writeNPY(contrasts(:,2), fullfile(alfDir, '_ss_trials.contrastRight.npy'));
 % writeNPY(feedbackType, fullfile(alfDir, '_ss_trials.feedbackType.npy'));
-% writeNPY(choice, fullfile(alfDir, '_ss_trials.choice.npy'));
+
+if isfield(block, 'trial')
+    writeNPY(choice, fullfile(alfDir, '_ss_trials.choice.npy'));
+    
+    writeNPY(choice, fullfile(folderShared, mouseName, date, '_ss_trials.choice.npy'));
+end
+
+
 % writeNPY(repNum, fullfile(alfDir, '_ss_trials.repNum.npy'));
 % writeNPY(preStim, fullfile(alfDir, '_ss_trials.preStimDelays.npy'));
 % writeNPY(delays, fullfile(alfDir, '_ss_trials.interactiveDelays.npy'));
@@ -498,8 +507,8 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %     fullfile(alfDir, '_ss_extraReward.times.npy'));
 % writeNPY(applyCorrection(feedbackTimes, tlToMaster), ...
 %     fullfile(alfDir, '_ss_trials.feedback_times.npy'));
-% 
-% %% write sparse noise data
+
+%% write sparse noise data
 % % (1) normal (white on black), e.g. SS087 2017-12-12 4
 % %   10 rows, 36 columns
 % %   azimuth: [-135 135]
@@ -821,4 +830,4 @@ io.writeEphysToNPY(mouseName, date, db(k).probes);
 %     axis tight
 % end
 
-% end
+end

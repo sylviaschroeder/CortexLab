@@ -1,4 +1,8 @@
-function convTrace = downSample(trace, time, sigma, newTime)
+function convTrace = downSample(trace, time, sigma, newTime, keepNaNs)
+
+if nargin < 5
+    keepNaNs = true;
+end
 
 dt = median(diff(time));
 sigSamples = round(sigma / dt);
@@ -12,4 +16,7 @@ padded = [ones(ceil(halfWin),1) .* nanmean(trace(1 : ceil(halfWin))); ...
 convTrace = conv(padded, win, 'valid');
 invalid = isnan(convTrace);
 convTrace = interp1(time(~invalid), convTrace(~invalid), newTime, 'pchip');
-convTrace(invalidBins) = NaN;
+
+if keepNaNs
+    convTrace(invalidBins) = NaN;
+end
