@@ -33,7 +33,7 @@ db = db_ephys_task;
 
 
 % B) for ephys data
-for k = 5:length(db)
+for k = 2:length(db)
     fprintf('%s %s exp %d:', db(k).subject, db(k).date, db(k).expTL)
     source = fullfile(sourceFolder, db(k).subject, db(k).date, ...
         num2str(db(k).expTL));

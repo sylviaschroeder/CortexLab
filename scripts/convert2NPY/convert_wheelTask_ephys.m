@@ -52,7 +52,7 @@ alignDir = fullfile(root, 'alignments');
 % tl = d.Timeline;
 
 %% write ephys data for each probe
-% io.writeEphysToNPY(mouseName, date, db(k).probes);
+io.writeEphysToNPY(mouseName, date, db(k).probes);
 
 % % write position of probes to csv file
 % hemisphere = cell(length(db(k).probes),1);
