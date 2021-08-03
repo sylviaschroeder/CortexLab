@@ -9,17 +9,26 @@ function [fitKernels, ETA, predictedSignals, predETA, windowTimes, ...
 % -- t is 1 by nTimePoints
 % -- eventTimes is a cell array of times of each event, where each vector
 % is a different event
-% -- eventValues is a cell array of "values" for each event, like if you want
-% different instances of the event to be fit with a scaled version of the
-% kernel. E.g. contrast of stimulus or velocity of wheel movement.
-% -- windows is a cell array of 2 by 1 windows, [startOffset endOffset]
+% -- eventWindows is a cell array of 2 by 1 windows, [startOffset endOffset]
+% -- vectors is a cell array of continuous signals used as predictors (e.g.
+% running speed). Each vector in the cell is a different predictor.
+% -- vectorWindows is a cell array of 2 by 1 windows, [startOffset endOffset]
 % -- lambda is a scalar, the regularization amount. 0 to do no
 % regularization
-% -- cvFold is 2 by 1, [foldSize, nToCalculate]. So [5 5] does 5-fold CV
-% and calculates the error on all five of the test sets. [5 1] still holds
-% out 20% but only does this once. 
+% -- normalise is true or false (default); if true, STD of each predictor,
+% i.e. each column of toeplitz matrix is set to 1
 % 
-% fit_kernels is a cell array of nS by nW fit kernels
+% fitKernels is a cell array of fit kernels
+% ETA is a cell array of event triggered averages (one per event type)
+% predictedSignals is the prediction using the kernels (same size as
+% inSignal)
+% predETA is a cell array of event triggered averages using the
+% predictedSignals
+% windowTimes are the kernel times relative to the event
+% alignedTraces are the traces aligned to even times
+
+% To use ridge regression instead of Lasso, comment out lines 44+45 and
+% remove comment of line 47.
 
 if nargin<7
     lambda = 0; % if this is non-zero, does ridge regression

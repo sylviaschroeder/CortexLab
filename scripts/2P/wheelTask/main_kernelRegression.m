@@ -1054,71 +1054,71 @@ for iSet = 1:length(db)
 
 
     %% Select model with crossvalidation
-%     partition = 20; % k-fold crossvalidation
-%     ev = cell(1, 3);
-%     ev{1} = NaN(size(caTraces,2), 4); % stim home: (1) none, (2) pres, (3) contr, (4) sqrt contr
-%     ev{2} = NaN(size(caTraces,2), 4); % stim moves: (1) none, (2) pres, (3) contr, (4) sqrt contr
-%     ev{3} = NaN(size(caTraces,2), 2); % non-vis: (1) none, (2) pres
-%     A = krnl.getToeplitz(caTime, [events1, events2, events3], ...
-%         [event1Windows_krnl, event2Windows_krnl, event3Windows_krnl], ...
-%         [vectors1{1}, vectors2{1}, vectors3{1}], ...
-%         [vector1Windows_krnl, vector2Windows_krnl, vector3Windows_krnl]);
-%     tValid = sum(A,2) > 0;
-%     fprintf('  Crossvalidation, cell (of %d):', size(caTraces,2))
-%     for iCell = 1:size(caTraces,2)
-%         fprintf(' %d', iCell)
-%         
-%         residuals1 = cell(1, 4);
-%         residuals1{1} = caTraces(:,iCell);
-%         % (0) No kernels, just mean response
-%         residuals = krnl.crossvalidate(caTraces(:,iCell), caTime, partition, ...
-%             {}, {}, {}, {}, lambda);
-%         ind = tValid & ~isnan(residuals) & ~isnan(caTraces(:,iCell));
-%         ev{1}(iCell,1) = 1 - sum(residuals(ind).^2) / ...
-%             sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
-%         
-%         % (1) Stimulus in home position
-%         for k = 1:3
-%             residuals1{k+1} = krnl.crossvalidate(caTraces(:,iCell), caTime, partition, ...
-%                 events1, event1Windows_krnl, vectors1{k}, vector1Windows_krnl, lambda);
-%             ind = tValid & ~isnan(residuals1{k+1}) & ~isnan(caTraces(:,iCell));
-%             ev{1}(iCell,k+1) = 1 - sum(residuals1{k+1}(ind).^2) / ...
-%                 sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
-%         end
-%         % select best stim model
-%         [~,bestStim] = max(ev{1}(iCell,:));
-%         
-%         % (2) Stimulus moving
-%         residuals2 = cell(1, 4);
-%         sig = residuals1{bestStim};
-%         % (0) no kernels
-%         residuals2{1} = sig;
-%         ev{2}(iCell,1) = ev{1}(iCell, bestStim);
-%         for k = 1:3
-%             residuals2{1+k} = krnl.crossvalidate(sig, caTime, partition, ...
-%                 events2, event2Windows_krnl, vectors2{k}, vector2Windows_krnl, lambda);
-%             ind = tValid & ~isnan(residuals2{1+k}) & ~isnan(sig);
-%             ev{2}(iCell,1+k) = 1 - sum(residuals2{1+k}(ind).^2) / ...
-%                 sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
-%         end
-%         % select best stim model
-%         [~,bestStim] = max(ev{2}(iCell,:));
-%         
-%         % (3) Non-visually related kernels
-%         sig = residuals2{bestStim};
-%         % (0) no kernels
-%         ev{3}(iCell,1) = ev{2}(iCell, bestStim);
-%         % (a) kernels present
-%         residuals = krnl.crossvalidate(sig, caTime, partition, ...
-%             events3, event3Windows_krnl, vectors3, vector3Windows_krnl, lambda);
-%         ind = tValid & ~isnan(residuals) & ~isnan(sig);
-%         ev{3}(iCell,2) = 1 - sum(residuals(ind).^2) / ...
-%             sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
-%     end
-%     fprintf('\n')
-%     
-%     results(iSet).expVar = ev;
-% 
+    partition = 20; % k-fold crossvalidation
+    ev = cell(1, 3);
+    ev{1} = NaN(size(caTraces,2), 4); % stim home: (1) none, (2) pres, (3) contr, (4) sqrt contr
+    ev{2} = NaN(size(caTraces,2), 4); % stim moves: (1) none, (2) pres, (3) contr, (4) sqrt contr
+    ev{3} = NaN(size(caTraces,2), 2); % non-vis: (1) none, (2) pres
+    A = krnl.getToeplitz(caTime, [events1, events2, events3], ...
+        [event1Windows_krnl, event2Windows_krnl, event3Windows_krnl], ...
+        [vectors1{1}, vectors2{1}, vectors3{1}], ...
+        [vector1Windows_krnl, vector2Windows_krnl, vector3Windows_krnl]);
+    tValid = sum(A,2) > 0;
+    fprintf('  Crossvalidation, cell (of %d):', size(caTraces,2))
+    for iCell = 1:size(caTraces,2)
+        fprintf(' %d', iCell)
+        
+        residuals1 = cell(1, 4);
+        residuals1{1} = caTraces(:,iCell);
+        % (0) No kernels, just mean response
+        residuals = krnl.crossvalidate(caTraces(:,iCell), caTime, partition, ...
+            {}, {}, {}, {}, lambda);
+        ind = tValid & ~isnan(residuals) & ~isnan(caTraces(:,iCell));
+        ev{1}(iCell,1) = 1 - sum(residuals(ind).^2) / ...
+            sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
+        
+        % (1) Stimulus in home position
+        for k = 1:3
+            residuals1{k+1} = krnl.crossvalidate(caTraces(:,iCell), caTime, partition, ...
+                events1, event1Windows_krnl, vectors1{k}, vector1Windows_krnl, lambda);
+            ind = tValid & ~isnan(residuals1{k+1}) & ~isnan(caTraces(:,iCell));
+            ev{1}(iCell,k+1) = 1 - sum(residuals1{k+1}(ind).^2) / ...
+                sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
+        end
+        % select best stim model
+        [~,bestStim] = max(ev{1}(iCell,:));
+        
+        % (2) Stimulus moving
+        residuals2 = cell(1, 4);
+        sig = residuals1{bestStim};
+        % (0) no kernels
+        residuals2{1} = sig;
+        ev{2}(iCell,1) = ev{1}(iCell, bestStim);
+        for k = 1:3
+            residuals2{1+k} = krnl.crossvalidate(sig, caTime, partition, ...
+                events2, event2Windows_krnl, vectors2{k}, vector2Windows_krnl, lambda);
+            ind = tValid & ~isnan(residuals2{1+k}) & ~isnan(sig);
+            ev{2}(iCell,1+k) = 1 - sum(residuals2{1+k}(ind).^2) / ...
+                sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
+        end
+        % select best stim model
+        [~,bestStim] = max(ev{2}(iCell,:));
+        
+        % (3) Non-visually related kernels
+        sig = residuals2{bestStim};
+        % (0) no kernels
+        ev{3}(iCell,1) = ev{2}(iCell, bestStim);
+        % (a) kernels present
+        residuals = krnl.crossvalidate(sig, caTime, partition, ...
+            events3, event3Windows_krnl, vectors3, vector3Windows_krnl, lambda);
+        ind = tValid & ~isnan(residuals) & ~isnan(sig);
+        ev{3}(iCell,2) = 1 - sum(residuals(ind).^2) / ...
+            sum((caTraces(ind,iCell)-mean(caTraces(ind,iCell))).^2);
+    end
+    fprintf('\n')
+    
+    results(iSet).expVar = ev;
+
 
     %% Perform linear regression and get event triggered averages
     % (1) get event-triggered averages
