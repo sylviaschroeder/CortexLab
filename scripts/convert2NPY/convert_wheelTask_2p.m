@@ -22,13 +22,19 @@ addpath('\\ZSERVER.cortexlab.net\Code\2photonPipeline')
 addpath(genpath('C:\STORAGE\workspaces\Rigbox\cb-tools'))
 addpath('C:\STORAGE\workspaces\Rigbox')
 addpath('C:\STORAGE\workspaces\Rigbox\cortexlab')
+addpath('\\ZSERVER.cortexlab.net\Code\Spikes')
+addpath('\\ZSERVER.cortexlab.net\Data\xfiles')
 addpath(genpath(fullfile(folderScript)));
 
 %% Load database
 db_wheelTask
 
 %% Collect data
-for k = 2:length(db)
+for k = 1:length(db)
+    if isempty(db(k).expNoise)
+        continue
+    end
+    
     fprintf('Dataset %d of %d\n', k, length(db))
     subject = db(k).subject;
     ind = strfind(subject, 'SS');
@@ -85,7 +91,8 @@ for k = 2:length(db)
     stimOri = [];
     
     t0 = 0;
-    for iExp = 1:length(db(k).exp)
+    % task data
+    for iExp = 1:length(db(k).expTask)
         folder = fullfile(folderROIData, db(k).subject, ...
             db(k).date, num2str(iExp));
         files = dir(fullfile(folder, '*_ROI.mat'));
@@ -133,43 +140,43 @@ for k = 2:length(db)
         valid = [valid, valid_exp];
         F_all = [F_all; F_exp];
         
-        data = load(fullfile(folder, 'timeAlign.mat'));
-        blockAlign = data.alignment;
-        
-        % load timeline (time stamps, rotary encoder)
-        folder = fullfile(folderTimeline, db(k).subject, db(k).date, ...
-            num2str(db(k).exp(iExp)));
-        file = dir(fullfile(folder, '*_Timeline.mat'));
-        if length(file) ~= 1
-            disp('Timeline file missing or more than 1 exists!');
-            return
-        end
-        data = load(fullfile(folder, file.name));
-        timeline = data.Timeline;
-        
-        switch db(k).microID
-            case 'b'
-                data = load(fullfile(folderConfig, 'ZMAZE', ...
-                    'hardware_20170519.mat'), 'mouseInput');
-            case 'b2'
-                data = load(fullfile(folderConfig, 'ZURPRISE', ...
-                    'hardware20170131.mat'), 'mouseInput');
-        end
-        mmFactor = data.mouseInput.MillimetresFactor;
-        
-        t = timeline.rawDAQTimestamps;
-        sr = 1 / median(diff(t));
-        behTime_exp = round(t(1)*sr)/sr : 1/sr : round(t(end)*sr)/sr;
-        wheel_exp = wheel.correctCounterDiscont(timeline.rawDAQData(:, ...
-            strcmp({timeline.hw.inputs.name}, 'rotaryEncoder')));
-        wheel_exp = interp1(t, wheel_exp, behTime_exp, 'pchip')' .* mmFactor;
-        vel_exp = wheel.computeVelocity(wheel_exp', round(smoothWheel * sr), sr)';
-        % write wheel movement events
-        Fs = round(sr);
-        [moveOn_exp, moveOff_exp, moveDispl_exp, peakVelTime_exp, peakAmp_exp] = ...
-            wheel.findWheelMoves3(wheel_exp, t, Fs, 'posThresh', 0.02, 'tThresh', 0.2, ...
-            'posThreshOnset', 0.001);
-        
+%         data = load(fullfile(folder, 'timeAlign.mat'));
+%         blockAlign = data.alignment;
+%         
+%         % load timeline (time stamps, rotary encoder)
+%         folder = fullfile(folderTimeline, db(k).subject, db(k).date, ...
+%             num2str(db(k).exp(iExp)));
+%         file = dir(fullfile(folder, '*_Timeline.mat'));
+%         if length(file) ~= 1
+%             disp('Timeline file missing or more than 1 exists!');
+%             return
+%         end
+%         data = load(fullfile(folder, file.name));
+%         timeline = data.Timeline;
+%         
+%         switch db(k).microID
+%             case 'b'
+%                 data = load(fullfile(folderConfig, 'ZMAZE', ...
+%                     'hardware_20170519.mat'), 'mouseInput');
+%             case 'b2'
+%                 data = load(fullfile(folderConfig, 'ZURPRISE', ...
+%                     'hardware20170131.mat'), 'mouseInput');
+%         end
+%         mmFactor = data.mouseInput.MillimetresFactor;
+%         
+%         t = timeline.rawDAQTimestamps;
+%         sr = 1 / median(diff(t));
+%         behTime_exp = round(t(1)*sr)/sr : 1/sr : round(t(end)*sr)/sr;
+%         wheel_exp = wheel.correctCounterDiscont(timeline.rawDAQData(:, ...
+%             strcmp({timeline.hw.inputs.name}, 'rotaryEncoder')));
+%         wheel_exp = interp1(t, wheel_exp, behTime_exp, 'pchip')' .* mmFactor;
+%         vel_exp = wheel.computeVelocity(wheel_exp', round(smoothWheel * sr), sr)';
+%         % write wheel movement events
+%         Fs = round(sr);
+%         [moveOn_exp, moveOff_exp, moveDispl_exp, peakVelTime_exp, peakAmp_exp] = ...
+%             wheel.findWheelMoves3(wheel_exp, t, Fs, 'posThresh', 0.02, 'tThresh', 0.2, ...
+%             'posThreshOnset', 0.001);
+%         
 %         if any(strcmp({timeline.hw.inputs.name}, 'piezoLickDetector'))
 %             lickPiezo_exp = interp1(t, timeline.rawDAQData(:, ...
 %                 strcmp({timeline.hw.inputs.name}, 'piezoLickDetector')), ...
@@ -228,18 +235,18 @@ for k = 2:length(db)
 %         end
 %         ch = cat(1, block_exp.trial.responseMadeID);
 %         ch(ch == 1) = -1;
-%         ch(ch == 2) = 0;
-%         ch(ch == 3) = 1;
+%         ch(ch == 2) = 1;
+%         ch(ch == 3) = 0;
 %         outcome_exp = cat(1, block_exp.trial.feedbackType) == 1;
-        
-        time_behaviour = [time_behaviour; behTime_exp'+t0];
-        wheelPos = [wheelPos; wheel_exp];
-        wheelVelocity = [wheelVelocity; vel_exp];
-        moveOn = [moveOn; moveOn_exp];
-        moveOff = [moveOff; moveOff_exp];
-        moveDispl = [moveDispl; moveDispl_exp];
-        peakVelTime = [peakVelTime; peakVelTime_exp];
-        peakAmp = [peakAmp; peakAmp_exp];
+%         
+%         time_behaviour = [time_behaviour; behTime_exp'+t0];
+%         wheelPos = [wheelPos; wheel_exp];
+%         wheelVelocity = [wheelVelocity; vel_exp];
+%         moveOn = [moveOn; moveOn_exp];
+%         moveOff = [moveOff; moveOff_exp];
+%         moveDispl = [moveDispl; moveDispl_exp];
+%         peakVelTime = [peakVelTime; peakVelTime_exp];
+%         peakAmp = [peakAmp; peakAmp_exp];
 %         lickPiezo = [lickPiezo; lickPiezo_exp];
 %         eyePos = [eyePos; eyePos_exp];
 %         eyeDiameter = [eyeDiameter; eyeDiam_exp];
@@ -281,39 +288,99 @@ for k = 2:length(db)
 %         
 %         writeNPY(frameTimes([1 end])' + t0, fullfile(folderSession, ...
 %             sprintf('_ss_recordings.task%02d_intervals.npy', iExp)));
-        
+%         
         t0 = time(end) + timeGap;
+    end
+    
+    % visual noise data
+    if ~isempty(db(k).expNoise)
+        folder = fullfile(folderROIData, db(k).subject, ...
+            db(k).date, num2str(db(k).expNoise));
+        files = dir(fullfile(folder, '*_ROI.mat'));
+        valid_exp = [];
+        F_exp = [];
+        for iPlane = 1:length(files)
+            % load data
+            d = load(fullfile(folder, files(iPlane).name));
+            meta = d.meta;
+            % find correct expInfo folder
+            stimFolder = dir(fullfile(folderTimeline, ['M*_' subject]));
+            meta.subject = stimFolder.name;
+            meta.folderTL = fullfile(stimFolder.folder, stimFolder.name, ...
+                db(k).date, num2str(meta.exp));
+            meta.basenameTL = sprintf('%s_%d_%s_Timeline', db(k).date, ...
+                meta.exp, stimFolder.name);
+            numCells = size(meta.F_final,2);
+            
+            if iPlane == 1
+                frameTimes = ppbox.getFrameTimes(meta)';
+                time = [time; frameTimes + t0];
+                
+                stimTimes = ppbox.getStimTimes(meta);
+                [stimFrames, stimPosition] = whiteNoise.getStimulusFrames(meta);
+                stimFrames = permute(stimFrames, [3 1 2]);
+                stimFrameDur = mean(stimTimes.offset - stimTimes.onset) / size(stimFrames,1);
+                stimFrameTimes = ((1:size(stimFrames,1))-1) .* stimFrameDur;
+                allStimFrameTimes = reshape((stimTimes.onset + stimFrameTimes)', [], 1);
+                
+                writeNPY(allStimFrameTimes + t0, ...
+                    fullfile(folderSession, '_ss_sparseNoise.times.npy'));
+                writeNPY(repmat((1:size(stimFrames,1))', length(stimTimes.onset), 1), ...
+                    fullfile(folderSession, '_ss_sparseNoise._ss_sparseNoiseID.npy'));
+                writeNPY(stimPosition, ...
+                    fullfile(folderSession, '_ss_sparseNoiseArea.edges.npy'));
+                writeNPY(stimFrames, ...
+                    fullfile(folderSession, '_ss_sparseNoiseID.map.npy'));
+            end
+            
+            F = meta.F_final;
+            if size(F_exp,1) > size(F,1)
+                F = padarray(F, size(F_exp,1)-size(F,1), NaN, 'post');
+            elseif size(F_exp,1)>0 && size(F_exp,1)<size(F,1)
+                F(size(F_exp,1)+1:end,:) = [];
+            end
+            F_exp = [F_exp, F];
+            
+            % valid ROIs: unique and no "switch-on" responses
+            valid_exp = [valid_exp; meta.ROI.isDuplicate == 0 & ...
+                meta.ROI.isSwitchOn == 0 & ~all(isnan(meta.F_final),1)'];
+        end
+        valid = [valid, valid_exp];
+        F_all = [F_all; F_exp];
+        
+        writeNPY(frameTimes([1 end])' + t0, fullfile(folderSession, ...
+            '_ss_recordings.sparseNoise_intervals.npy'));
     end
     valid = all(valid,2);
     
-%     writeNPY(planePerUnit(valid), ...
-%         fullfile(folderSession, '_ss_2pRois._ss_2pPlanes.npy'));
-%     writeNPY(cellIDs(valid), ...
-%         fullfile(folderSession, '_ss_2pRois.ids.npy'));
-%     writeNPY(xyzPos(valid,:), ...
-%         fullfile(folderSession, '_ss_2pRois.xyz.npy'));
-%     isGad(isGad == 0) = NaN;
-%     writeNPY(isGad(valid), ...
-%         fullfile(folderSession, '_ss_2pRois.isGad.npy'));
-%     writeNPY(timeShifts, fullfile(folderSession, '_ss_2pPlanes.delay.npy'));
-%     writeNPY(time, fullfile(folderSession, '_ss_2pCalcium.timestamps.npy'));
-%     writeNPY(F_all(:,valid), ...
-%         fullfile(folderSession, '_ss_2pCalcium.dff.npy'));
-%     
+    writeNPY(planePerUnit(valid), ...
+        fullfile(folderSession, '_ss_2pRois._ss_2pPlanes.npy'));
+    writeNPY(cellIDs(valid), ...
+        fullfile(folderSession, '_ss_2pRois.ids.npy'));
+    writeNPY(xyzPos(valid,:), ...
+        fullfile(folderSession, '_ss_2pRois.xyz.npy'));
+    isGad(isGad == 0) = NaN;
+    writeNPY(isGad(valid), ...
+        fullfile(folderSession, '_ss_2pRois.isGad.npy'));
+    writeNPY(timeShifts, fullfile(folderSession, '_ss_2pPlanes.delay.npy'));
+    writeNPY(time, fullfile(folderSession, '_ss_2pCalcium.timestamps.npy'));
+    writeNPY(F_all(:,valid), ...
+        fullfile(folderSession, '_ss_2pCalcium.dff.npy'));
+    
 %     writeNPY(time_behaviour, ...
 %         fullfile(folderSession, '_ss_wheel.timestamps.npy'));
 %     writeNPY(wheelPos, ...
 %         fullfile(folderSession, '_ss_wheel.position.npy'));
 %     writeNPY(wheelVelocity, ...
 %         fullfile(folderSession, '_ss_wheel.velocity.npy'));
-    writeNPY([moveOn moveOff], ...
-        fullfile(folderSession, '_ss_wheelMoves.intervals.npy'));
-    writeNPY(moveDispl, ...
-        fullfile(folderSession, '_ss_wheelMoves.displacement.npy'));
-    writeNPY(peakVelTime, ...
-        fullfile(folderSession, '_ss_wheelMoves.peak_times.npy'));
-    writeNPY(peakAmp, ...
-        fullfile(folderSession, '_ss_wheelMoves.amplitude.npy'));
+%     writeNPY([moveOn moveOff], ...
+%         fullfile(folderSession, '_ss_wheelMoves.intervals.npy'));
+%     writeNPY(moveDispl, ...
+%         fullfile(folderSession, '_ss_wheelMoves.displacement.npy'));
+%     writeNPY(peakVelTime, ...
+%         fullfile(folderSession, '_ss_wheelMoves.peak_times.npy'));
+%     writeNPY(peakAmp, ...
+%         fullfile(folderSession, '_ss_wheelMoves.amplitude.npy'));
 %     writeNPY(lickPiezo, ...
 %         fullfile(folderSession, '_ss_lickPiezo.raw.npy'));
 %     

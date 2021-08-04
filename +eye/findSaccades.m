@@ -1,5 +1,29 @@
-function [saccadeTimes, velocity, velocityAligned, bins] = ...
+function [saccadeIntervals, amplitudes] = ...
     findSaccades(x, y, minDist, scaleThresh, doPlot)
+%FINDSACCADES Detects saccade times and amplitudes.
+%   [saccadeIntervals, amplitudes] = FINDSACCADES(x, y, minDist, ...
+%    scaleThresh, doPlot) returns on- and offset times of saccades and
+%    their amplitudes.
+%
+%   saccadeIntervals    [saccades x 2]; start and end of each saccade
+%                       (given in number of samples from start of x and y 
+%                       traces.
+%   amplitudes          [saccades x 1]; amplitude of each saccade, defined
+%                       as maximum Eucleadian distance between any eye
+%                       positions during the saccade.
+%
+%   x                   [t x 1]; x position of pupil
+%   y                   [t x 1]; y position of pupil
+%   minDist             double; minimum time interval between two separate
+%                       saccades, if two saccades are detected with less
+%                       than this interval the second one is treated as
+%                       continuation of the first.
+%   saccThresh          double; determines the threshold of pupil velocity
+%                       used to detect saccades; given in standard
+%                       deviations of the log-log distribution of velocity;
+%                       optional; default is 1.
+%   doPlot              0 or 1; plots detected saccades if 1;
+%                       optional; default is 0
 
 if nargin < 4
     scaleThresh = 1;
@@ -8,130 +32,99 @@ if nargin < 5
     doPlot = 0;
 end
 
+%determine velocity
 diffX = diff(x);
 diffY = diff(y);
-
 velocity = sqrt(diffX.^2 + diffY.^2);
-acceleration = diff(velocity);
 
+% determine suitable velocity threshold to detect saccades: fit Gaussian to
+% distribution of velocity (on  log-log scale), use x STDs (default: 1)
+% as threshold
 vel_log = log(velocity);
 vel_log(isinf(vel_log)) = [];
-b_vel = floor(min(vel_log)*10)/10 : 0.1 : ceil(max(vel_log)*10)/10;
-n = hist(vel_log, b_vel);
+edges_vel = floor(min(vel_log)*10)/10 : 0.1 : ceil(max(vel_log)*10)/10;
+bins_vel = edges_vel(1:end-1) + 0.05;
+n = histcounts(vel_log, edges_vel);
 n = log(n);
 ind = ~isinf(n);
-f = fit(b_vel(ind)', n(ind)', 'gauss1');
+f = fit(bins_vel(ind)', n(ind)', 'gauss1');
 coeffs = coeffvalues(f);
 thresh_vel = exp(sum(coeffs(2:3))) * scaleThresh; % threshold = mean + STD of velocity distribution (in log-log histogram)
 
-reverse1 = acceleration(1:end-1) .* acceleration(2:end);
-reverse2 = acceleration(1:end-2) .* acceleration(3:end);
-
-rev1_ln = log(reverse1(reverse1 < 0) .* -1);
-bins1 = -.5:0.5:max(rev1_ln)+1;
-n1 = hist(rev1_ln, bins1);
-f1 = fit(bins1(2:end)', n1(2:end)', 'poly5');
-b = 0:0.1:max(rev1_ln);
-mins = islocalmin(f1(b));
-ind = find(mins,1);
-thresh_1 = -exp(b(ind));
-
-rev2_ln = log(reverse2(reverse2 < 0) .* -1);
-bins2 = -.5:0.5:max(rev2_ln)+1;
-n2 = hist(rev2_ln, bins2);
-f2 = fit(bins2(2:end)', n2(2:end)', 'poly5');
-b = 0:0.1:max(rev2_ln);
-mins = islocalmin(f2(b));
-ind = find(mins,1);
-thresh_2 = -exp(b(ind));
-if isempty(thresh_2)
-    thresh_2 = min(reverse2)/2;
-end
-
-sacc = false(length(x),1);
-sacc(1:end-1) = sacc(1:end-1) | velocity > thresh_vel;
-% sacc(2:end-2) = sacc(2:end-2) | reverse1<thresh_1;
-% sacc(2:end-3) = sacc(2:end-3) | reverse2<thresh_2;
-% sacc(2:end-4) = sacc(2:end-4) | reverse3<thresh_3;
+% detect saccade onsets (with minimum distance of minDist)
+sacc = velocity > thresh_vel;
 sacc = conv(double(sacc), ones(1, minDist));
 sacc(length(x)+1:end) = [];
-saccadeTimes = find(diff(sacc>0)>0) + 1;
-velPrev = velocity(saccadeTimes-1) > thresh_vel/2;
-saccadeTimes(velPrev) = saccadeTimes(velPrev) - 1;
+% set values after each saccade to 1 -> values betwee nearby saccades will
+% be >0
+onsets = find(diff(sacc > 0) > 0) + 1;
+% if velocity one time point before detected threshold crossing is still
+% larger than half the threshold, shift saccade onset back
+velPrev = velocity(onsets-1) > thresh_vel/2;
+onsets(velPrev) = onsets(velPrev) - 1;
 
-bins = -minDist : 3*minDist;
-ind = saccadeTimes + bins;
-nonVal = ind<1 | ind>length(velocity);
-ind(nonVal) = 1;
-velocityAligned = velocity(ind);
-velocityAligned(nonVal) = NaN;
+% detect saccade offsets
+saccAfter = velocity > thresh_vel;
+saccAfter = conv(double(saccAfter), ones(1, minDist));
+saccBefore = velocity > thresh_vel;
+saccBefore = conv(double(saccBefore), ones(1, minDist), 'valid'); 
+saccBefore = [saccBefore; zeros(length(saccAfter) - length(saccBefore),1)];
+saccBetweenClose = saccAfter>0 & saccBefore>0;
+sacc = double(velocity > thresh_vel/2 | saccBetweenClose(1:length(velocity)));
+offsets = find(diff(sacc) < 0) + 1;
+offsets = offsets' - onsets;
+indOffsets = offsets > 0;
+indOffsets = indOffsets & [true(size(onsets)), ~indOffsets(:,1:end-1)];
+offsets = onsets + offsets(indOffsets);
+
+saccadeIntervals = [onsets offsets];
+
+% determine amplitude of each saccade (in pixels)
+amplitudes = zeros(size(onsets));
+for am = 1:length(amplitudes)
+    % calculate pairwaise distance between each sample during saccade
+    xSacc = x(onsets(am) : offsets(am));
+    ySacc = y(onsets(am) : offsets(am));
+    dists = sqrt((xSacc - xSacc').^2 + (ySacc - ySacc').^2);
+    amplitudes(am) = max(dists(:));
+end
 
 if doPlot > 0
     t = 1:length(x);
     figure('Position', [1 41 1920 1083])
-    ax = zeros(1,6);
-    subplot(6,6,1:5) % 1
+    ax = zeros(1,3);
+    subplot(3,6,1:5) % x-position
     plot(x,'k')
     hold on
-    plot(t(saccadeTimes), x(saccadeTimes), '*r')
+    plot(t(onsets), x(onsets), '>r')
+    plot(t(offsets), x(offsets), '<b')
     ylabel('eye pos in x')
     ax(1) = gca;
-    subplot(6,6,7:11) % 2
+    subplot(3,6,7:11) % y-position
     plot(y,'k')
     hold on
-    plot(t(saccadeTimes), y(saccadeTimes), '*r')
+    plot(t(onsets), y(onsets), '>r')
+    plot(t(offsets), y(offsets), '<b')
     ylabel('eye pos in y')
     ax(2) = gca;
-    subplot(6,6,13:17) % 3
+    subplot(3,6,13:17) % velocity
     plot(2:length(x),velocity,'k')
     hold on
-    plot([1 length(x)], [1 1].*thresh_vel, 'r')
+    plot(t([1 end]), [1 1].*thresh_vel, 'r')
+    plot(t(onsets), velocity(onsets), '>r')
+    plot(t(offsets), velocity(offsets), '<b')
     ylabel('velocity')
     ax(3) = gca;
-    subplot(6,6,19:23) % 4
-    plot(2:length(x)-1,acceleration,'k')
-    ylabel('acceleration')
-    ax(4) = gca;
-    subplot(6,6,25:29) % 5
-    plot(2:length(x)-2,reverse1,'k')
-    ylabel('rev in t+1')
-    hold on
-%     plot([1 length(x)],[1 1].*thresh_1, 'r')
-    ax(5) = gca;
-    subplot(6,6,31:35) % 6
-    plot(2:length(x)-3,reverse2,'k')
-    ylabel('rev in t+2')
-    hold on
-%     plot([1 length(x)],[1 1].*thresh_2, 'r')
-    ax(6) = gca;
     linkaxes(ax, 'x')
-    xlim([1 length(x)])
+    xlim(t([1 end]))
     xlabel('Time (in samples)')
     
-    subplot(6,6,6)
-    plot(bins, nanmean(velocityAligned), 'k')
-    xlim(bins([1 end]))
-    xlabel('Time from saccade')
-    ylabel('Velocity')
-    subplot(6,6,18)
-    plot(b_vel, n, 'k')
+    subplot(3,6,18)
+    plot(bins_vel, n, 'k')
     hold on
     plot(f, 'r')
     plot(log(thresh_vel), f(log(thresh_vel)), 'ro')
-    xlim(b_vel([1 end]))
+    xlim(edges_vel([1 end]))
     xlabel('velocity (e^x)')
     legend off
-    subplot(6,6,30) % 5
-    plot(bins1(2:end), n1(2:end), 'k')
-    hold on
-    plot(f1)
-    xlim(bins1([2 end]))
-    legend off
-    subplot(6,6,36) % 6
-    plot(bins2(2:end), n2(2:end), 'k')
-    hold on
-    plot(f2)
-    xlim(bins2([2 end]))
-    legend off
-    xlabel('rev magn in e^x')
 end
