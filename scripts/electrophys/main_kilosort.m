@@ -1,9 +1,17 @@
 %% Folders
-folderData = '\\zubjects.cortexlab.net\Subjects';
-folderLocal = 'J:\Ephys';
+% UCL
+% folderData = '\\zubjects.cortexlab.net\Subjects';
+% folderLocal = 'J:\Ephys';
+% folderCode = 'C:\dev\workspace\CortexLab';
+% folderTools = 'C:\STORAGE\workspaces';
+% folderToolsNew = 'C:\dev\toolboxes';
+% folderConfig = 'C:\dev\workspace\CortexLab\kilosortFiles\configFiles';
+% Sussex
+folderData = 'E:\Subjects';
+folderLocal = 'D:\Ephys';
 folderCode = 'C:\dev\workspace\CortexLab';
-folderTools = 'C:\STORAGE\workspaces';
-folderToolsNew = 'C:\dev\toolboxes';
+folderTools = 'C:\dev\tools';
+folderToolsNew = 'C:\dev\tools';
 folderConfig = 'C:\dev\workspace\CortexLab\kilosortFiles\configFiles';
 
 %% Parameters
