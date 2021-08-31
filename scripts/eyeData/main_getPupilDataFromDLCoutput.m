@@ -26,7 +26,7 @@ params.smoothSpan = 5; % in frames
 db = db_ephys_task;
 
 %% for ephys data
-for k = 27:length(db)
+for k = 20:length(db)
     fprintf('%s %s\n', db(k).subject, db(k).date)
     %% Import data, plot basic relationships
     file = dir(fullfile(folderData, sprintf('%s_*_%s_*.csv',db(k).date, db(k).subject)));
@@ -38,19 +38,20 @@ for k = 27:length(db)
     pupilLeft = output(:,11:13);
     lidTop = output(:,14:16);
     lidBottom = output(:,17:19);
+    data = [pupilTop, pupilBottom, pupilLeft, pupilRight, lidTop, lidBottom];
     
     % relation between horizontal pupil position, and width and height of pupil
     width = pupilRight(:,1) - pupilLeft(:,1);
     height = pupilBottom(:,2) - pupilTop(:,2);
     centerX = pupilLeft(:,1) + 0.5 .* width;
-    valid = all(output(:,4:3:end) > params.minCertainty, 2);
+    valid = all(data(:, 3:3:12) > params.minCertainty, 2);
     
     [F, F0] = dlc.estimateHeightFromWidthPos(width(valid), height(valid), ...
         centerX(valid), params);
     
-    [centerY_adj, height_adj] = dlc.adjustCenterHeight(output, F, params);
+    [centerY_adj, height_adj] = dlc.adjustCenterHeight(data, F, params);
     
-    [blinks, blStarts, blStops] = dlc.detectBlinks(output, params, ...
+    [blinks, blStarts, blStops] = dlc.detectBlinks(data, params, ...
         centerY_adj, height_adj, true);
     
     centerX = medfilt1(centerX, params.smoothSpan);
@@ -160,7 +161,7 @@ for k = 27:length(db)
 end
 
 
-% %% for 2P data
+%% for 2P data
 % for k = 1:length(db)
 %     for exp = 1:length(db(k).exp)
 %         fprintf('%s %s exp %d\n', db(k).subject, db(k).date, db(k).exp(exp))

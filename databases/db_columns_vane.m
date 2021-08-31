@@ -1,0 +1,401 @@
+function db = db_columns_vane
+
+k = 0;
+
+%% Retinal Boutons
+k = k + 1;
+db(k).subject = 'M160706_SS066';
+db(k).date = '2016-09-01';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = [];
+db(k).expNoise = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 7:14;
+
+k=k+1; %2
+db(k).subject = 'M160923_SS069';
+db(k).date = '2016-10-11';
+db(k).expGratings = 3;
+db(k).expGrayScreen = [];
+db(k).expDark = 4;
+db(k).expNoise = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 7:14;
+
+k=k+1; %3
+db(k).subject = 'M160923_SS069';
+db(k).date = '2016-10-13';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 2;
+db(k).expDark = 3;
+db(k).expNoise = 4;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = [9 10 12 14 15];
+
+k=k+1; %4
+db(k).subject = 'M160923_SS069';
+db(k).date = '2016-10-21';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 2;
+db(k).expDark = [];
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %5
+db(k).subject = 'M160923_SS070';
+db(k).date = '2016-10-18';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 2;
+db(k).expDark = 3;
+db(k).expNoise = 4;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 7:12;
+
+k=k+1; %6
+db(k).subject = 'M160923_SS071';
+db(k).date = '2016-10-18';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = [];
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 10:14;
+
+k=k+1; %7
+db(k).subject = 'M170821_SS075';
+db(k).date = '2017-09-13';
+db(k).expGratings = 3;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 2;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 5;
+
+k=k+1; %8
+db(k).subject = 'SS075';
+db(k).date = '2017-09-27';
+db(k).expGratings = 3;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 2;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 5;
+
+k=k+1; %9
+db(k).subject = 'M170821_SS076';
+db(k).date = '2017-09-12';
+db(k).expGratings = [];
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 2;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 7;
+
+k=k+1; %10
+db(k).subject = 'M170821_SS076';
+db(k).date = '2017-09-27';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %11
+db(k).subject = 'SS076';
+db(k).date = '2017-10-02';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %12
+db(k).subject = 'SS076';
+db(k).date = '2017-10-04';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %13
+db(k).subject = 'SS077';
+db(k).date = '2017-09-28';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %14
+db(k).subject = 'SS077';
+db(k).date = '2017-10-03';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %15
+db(k).subject = 'SS077';
+db(k).date = '2017-10-05';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 6;
+
+k=k+1; %16
+db(k).subject = 'SS078';
+db(k).date = '2017-09-28';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 5;
+
+k=k+1; %17
+db(k).subject = 'SS078';
+db(k).date = '2017-10-04';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 5;
+
+k=k+1; %18
+db(k).subject = 'SS078';
+db(k).date = '2017-10-05';
+db(k).expGratings = 2;
+db(k).expGrayScreen = [];
+db(k).expDark = 1;
+db(k).expNoise = 3;
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 5;
+
+%% SC Neurons
+% k=k+1;
+% db(k).subject = 'M150114_SS035'; % Vane
+% db(k).date = '2015-02-10';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = [];
+% db(k).expNoise = 1;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = [];
+% db(k).planes = 2:4;
+
+% k=k+1;
+% db(k).subject = 'M150305_SS041'; % Vane
+% db(k).date = '2015-03-30';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = [];
+% db(k).expNoise = 1;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = [];
+% db(k).planes = 2:3;
+
+% k=k+1;
+% db(k).subject = 'M150305_SS041'; % Vane
+% db(k).date = '2015-04-11';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = [];
+% db(k).expNoise = 3;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = 1;
+% db(k).planes = 2:5;
+
+% k=k+1;
+% db(k).subject = 'M150305_SS041'; % Vane
+% db(k).date = '2015-04-15';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = 5;
+% db(k).expNoise = 3;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = 1;
+% db(k).planes = 2:5;
+
+k=k+1;
+db(k).subject = 'M150305_SS041';
+db(k).date = '2015-04-23';
+db(k).expGratings = 3;
+db(k).expGrayScreen = 1;
+db(k).expNoise = 4;
+db(k).expDark = [];
+db(k).expStatic = 2;
+db(k).expBars = [];
+db(k).planes = 2:5;
+
+% k=k+1;
+% db(k).subject = 'M150323_SS042'; % Vane
+% db(k).date = '2015-04-14';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = 4;
+% db(k).expNoise = 3;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = 1;
+% db(k).planes = 2:5;
+
+% k=k+1;
+% db(k).subject = 'M150323_SS042'; % Vane
+% db(k).date = '2015-04-22';
+% db(k).expGratings = 2;
+% db(k).expGrayScreen = 4;
+% db(k).expNoise = 3;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = 1;
+% db(k).planes = 2:5;
+
+k=k+1;
+db(k).subject = 'M150410_SS044';
+db(k).date = '2015-04-28';
+db(k).expGratings = 3;
+db(k).expGrayScreen = 5;
+db(k).expNoise = 4;
+db(k).expDark = [];
+db(k).expStatic = [];
+db(k).expBars = 2;
+db(k).planes = 2:5;
+
+% k=k+1;
+% db(k).subject = 'M150410_SS044'; % Vane
+% db(k).date = '2015-04-30';
+% db(k).expGratings = 3;
+% db(k).expGrayScreen = 1;
+% db(k).expNoise = 4;
+% db(k).expDark = [];
+% db(k).expStatic = 2;
+% db(k).expBars = [];
+% db(k).planes = 2:4;
+
+% k=k+1;
+% db(k).subject = 'M150410_SS044'; % Vane
+% db(k).date = '2015-05-15';
+% db(k).expGratings = 4;
+% db(k).expGrayScreen = 2;
+% db(k).expNoise = 7;
+% db(k).expDark = [];
+% db(k).expStatic = 5;
+% db(k).expBars = 3;
+% db(k).planes = 2:5;
+
+k=k+1;
+db(k).subject = 'M150410_SS044'; % not on Vane's list
+db(k).date = '2015-05-29';
+db(k).expGratings = 4;
+db(k).expGrayScreen = [];
+db(k).expNoise = 1;
+db(k).expDark = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150410_SS045';
+db(k).date = '2015-05-04';
+db(k).expGratings = 2;
+db(k).expGrayScreen = 4;
+db(k).expNoise = 3;
+db(k).expDark = [];
+db(k).expStatic = [];
+db(k).expBars = 1;
+db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150410_SS045';
+db(k).date = '2015-05-05';
+db(k).expGratings = 2;
+db(k).expGrayScreen = 4;
+db(k).expNoise = 3;
+db(k).expDark = [];
+db(k).expStatic = 1;
+db(k).expBars = [];
+db(k).planes = 2:4;
+
+% k=k+1;
+% db(k).subject = 'M150410_SS045'; % Vane
+% db(k).date = '2015-05-28';
+% db(k).expGratings = [];
+% db(k).expGrayScreen = [];
+% db(k).expNoise = 6;
+% db(k).expDark = [];
+% db(k).expStatic = [];
+% db(k).expBars = [];
+% db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150610_SS047'; % re-processed by Vane, but using my old data
+db(k).date = '2015-11-23';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 5;
+db(k).expNoise = 2;
+db(k).expDark = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150610_SS047';
+db(k).date = '2015-12-03';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 5;
+db(k).expNoise = 4;
+db(k).expDark = [];
+db(k).expStatic = 2;
+db(k).expBars = 3;
+db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150611_SS048';
+db(k).date = '2015-11-09';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 2;
+db(k).expNoise = 5;
+db(k).expDark = [];
+db(k).expStatic = 3;
+db(k).expBars = 4;
+db(k).planes = 2:4;
+
+k=k+1;
+db(k).subject = 'M150611_SS048'; % re-processed by Vane, but using my old data
+db(k).date = '2015-12-02';
+db(k).expGratings = 1;
+db(k).expGrayScreen = 6;
+db(k).expNoise = 4;
+db(k).expDark = [];
+db(k).expStatic = [];
+db(k).expBars = [];
+db(k).planes = 2:4;

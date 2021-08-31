@@ -1,12 +1,12 @@
 function [blinks, starts, stops] = detectBlinks(output, params, centerY, ...
     height, print)
 
-pupilTop = output(:,2:4); % [x y likelihood]
-pupilBottom = output(:,5:7);
-pupilLeft = output(:,8:10);
-pupilRight = output(:,11:13);
-lidTop = output(:,14:16);
-lidBottom = output(:,17:19);
+pupilTop = output(:,1:3); % [x y likelihood]
+pupilBottom = output(:,4:6);
+pupilLeft = output(:,7:9);
+pupilRight = output(:,10:12);
+lidTop = output(:,13:15);
+lidBottom = output(:,16:18);
 
 blinks = pupilLeft(:,3) < params.minCertainty | pupilRight(:,3) < params.minCertainty;
 
@@ -24,7 +24,11 @@ blinks = blinks | (pupilTop(:,3) < params.minCertainty & ...
 
 % get minimum distance of center to lid (top or bottom); if distance too 
 % small -> blink
-distLidCenter = min([lidBottom(:,2) - centerY, centerY - lidTop(:,2)], [], 2);
+distTopLidToCenter = centerY - lidTop(:,2);
+distTopLidToCenter(lidTop(:,3) < params.minCertainty) = NaN;
+distBottomLidToCenter = lidBottom(:,2) - centerY;
+distBottomLidToCenter(lidBottom(:,3) < params.minCertainty) = NaN;
+distLidCenter = min([distTopLidToCenter, distBottomLidToCenter], [], 2);
 blinks = blinks | distLidCenter < params.minDistLidCenter * height;
 
 % % disregard single detected frames
