@@ -4,6 +4,11 @@ function [X, Y, Pref, Var, N] = getSmoothMap(rf_x, rf_y, prefDir, dirSelectivity
 gridBin = 2; % visual degrees, distance between values to be calculated for map
 radius = 10; % visual degrees, radius for including nearest neighbours for 
              % each grid point used to calculate map values
+             
+% if direction selecitivity not supplied, set to one
+if nargin < 4
+    dirSelectivity = ones(size(prefDir));
+end
 
 % Get grid (x and y)
 x_range = [floor(min(rf_x) / gridBin) * gridBin, ceil(max(rf_x) / gridBin) * gridBin];
@@ -24,9 +29,12 @@ for k = 1:numel(X)
     d = sqrt((X(k) - rf_x).^2 + (Y(k) - rf_y).^2);
     % find neighbours within radius
     neighbours = d <= radius;
-    % polar coordainates of vector average of direction preferences
+    % polar coordinates of vector average of direction preferences
     [theta, rho] = cart2pol(mean(dir_x(neighbours)), mean(dir_y(neighbours)));
     Pref(k) = theta;
     Var(k) = rho;
     N(k) = sum(neighbours);
 end
+
+% Transform radians to degree
+Pref = rad2deg(Pref);
