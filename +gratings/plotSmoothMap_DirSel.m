@@ -25,8 +25,8 @@ ylabel('Elevation')
 % colormatrix
 figure
 c = repmat(permute(cm, [3 1 2]), 20, 1, 1);
-gray = linspace(1, 0, 20)';
-binSz = -diff(gray(1:2));
+gray = linspace(0, 1, 20)';
+binSz = diff(gray(1:2));
 c = gray .* c + (1 - gray) .* 0.5;
 image([0.5 359.5], [0+0.5*binSz, 1-0.5*binSz], c)
 set(gca, 'XTick', 0:90:360, 'YTick', 0:0.25:1)

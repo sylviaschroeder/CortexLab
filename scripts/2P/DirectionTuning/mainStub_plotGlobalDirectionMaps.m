@@ -9,7 +9,7 @@ valid = ~isnan(data.RFX) & ~isnan(data.RFY) & ~isnan(data.direction) & ...
 
 % Plot map of direction preferences (colour); transparency reflects number
 % of neurons per spot
-gratings.plotSmoothMap(X, Y, Pref, N, 'pref', 10);
+gratings.plotSmoothMap(X, Y, Pref, N, 'pref', 20);
 
 % Plot map of direction selectivity (colour); transparency reflects number
 % of neurons per spot
