@@ -418,8 +418,8 @@ end
 %     sprintf('%s_%s_%s.fig', subject, date, sp(2).name)), 'compact')
 
 %% align eye video
-% alignVideo(subject, date, TLexp, 'eye')
-% % resulting times are stored in Zserver\Data\EyeCamera; times need to be
+alignVideo(subject, date, TLexp, 'eye')
+% % resulting times are stored in Zserver\Data\EyeCamera\[subject]\[date]\[TLexp]; times need to be
 % % aligned to ephys times: eyeTimes.*timelineToEphys(1)+timelineToEphys(2)
 
 %% Plot photodiode in ephys time to determine times of darkness
