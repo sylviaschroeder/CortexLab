@@ -10,7 +10,7 @@ folderData = '\\zubjects.cortexlab.net\Subjects';
 folderPlots = 'C:\STORAGE\OneDrive - University College London\Lab\RESULTS\task_ephys\PSTHs';
 
 folderScript = 'C:\dev\workspace\CortexLab';
-folderTools = 'C:\STORAGE\workspaces';
+folderTools = 'C:\dev\toolboxes';
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
