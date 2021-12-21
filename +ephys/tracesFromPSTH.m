@@ -1,6 +1,18 @@
 function [traces, bins] = tracesFromPSTH(times, trials, groups, limits, ...
     binSize, sigma)
 
+% Calculate smoother PSTHs from spike times.
+%
+% traces    [group x t]; One trace per group
+% bins      [1 x t]; time of traces
+%
+% times     [st x 1]; spike times aligned to event of interest
+% trials    [st x 1]
+% groups
+% limits
+% binSize
+% sigma
+
 if prod(limits) < 0
     edges = [-flip(0:binSize:-limits(1)) binSize:binSize:limits(2)];
 else

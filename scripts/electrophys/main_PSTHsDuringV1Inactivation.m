@@ -1,7 +1,12 @@
 %% Folders
-folderData = 'C:\STORAGE\OneDrive - University of Sussex\Lab\DATA\DataToPublish\arousal_NYP_matlab\sc neurons ephys';
-folderTools = 'C:\STORAGE\workspaces';
-folderMyRepos = 'C:\dev\workspace';
+% UCL
+% folderData = 'C:\STORAGE\OneDrive - University of Sussex\Lab\DATA\DataToPublish\arousal_NYP_matlab\sc neurons ephys';
+% folderTools = 'C:\STORAGE\workspaces';
+% folderMyRepos = 'C:\dev\workspace';
+% Sussex
+folderData = 'C:\Users\Sylvia\OneDrive - University of Sussex\Lab\DATA\DataToPublish\arousal_NYP_matlab\sc neurons ephys';
+folderTools = 'C:\dev\toolboxes';
+folderMyRepos = 'C:\dev\workspaces';
 
 %% Parameters
 binSize = 0.005;
@@ -62,6 +67,18 @@ for s = 1:length(subjects)
             subplot(2,2,3)
             ephys.plotPSTH(gca, sp, tr, window, stimSequence(trOff), ...
                 [dirs; NaN], [cols; 0 0 0], {});
+            hold on
+            % plot stimulus on- and offset
+            plot([0 0], ylim, 'k');
+            plot([1 1] .* stimDur, ylim, 'k');
+            % plot laser on- and offset
+            plot([1 1] .* lOn, ylim, 'c');
+            plot([1 1] .* (stimDur + lOff), ylim, 'c');
+            xlabel('Time from visual stimulus (s)')
+            ylabel('Direction')
+
+            % plot traces for laser-off trials
+            
             
             for sp = 1:4
                 subplot(2,2,sp), hold on

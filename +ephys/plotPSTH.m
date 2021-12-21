@@ -14,9 +14,13 @@ function lgd = plotPSTH(gca, spikes_al, spikes_trials, limits, groups, ...
 % limits            [pre post]; time spans before and after each aligned
 %                   event that will appear in plot
 % groups            [trial x 1]; group ID of each alignment event (trial)
-% groupNames        [group x 1]
-% groupColors
-% markers
+% groupNames        [group x 1]; names of groups
+% groupColors       [group x 3]; colours for dots of each group
+% markers           {ev x 5}; other events whose times will be plotted into
+%                   the raster (movement onsets); each row contains: (1)
+%                   times of ev, (2) ID of ev (trial), (3) marker symbol
+%                   (e.g. '+'), (4) [R G B] colour of marker, (5) name of
+%                   ev (e.g. 'move start')
 
 axes(gca)
 hold on
