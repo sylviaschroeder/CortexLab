@@ -1,5 +1,5 @@
-% units = 'boutons';
-units = 'neurons';
+units = 'boutons';
+% units = 'neurons';
 
 timeGap = 600; %in s, gap between experiments
 

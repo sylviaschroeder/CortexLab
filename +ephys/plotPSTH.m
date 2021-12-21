@@ -1,10 +1,31 @@
-function lgd = plotPSTH(gca, spikes_al, spikes_trials, limits, groups, groupNames, ...
-    markers)
+function lgd = plotPSTH(gca, spikes_al, spikes_trials, limits, groups, ...
+    groupNames, groupColors, markers)
+
+% Plot raster of grouped events (spikes) and add other (rare) events (e.g.
+% behavioural events like wheel movements)
+%
+% lgd               Legend object (for marker names)
+%
+% gca               Axes where plot will appear
+% spikes_al         [st x 1]; times of all spikes aligned to their relative
+%                   events
+% spikes_trials     [st x 1]; ID of event (trial) that each spike was
+%                   aligned to
+% limits            [pre post]; time spans before and after each aligned
+%                   event that will appear in plot
+% groups            [trial x 1]; group ID of each alignment event (trial)
+% groupNames        [group x 1]
+% groupColors
+% markers
 
 axes(gca)
 hold on
 
 groups_uni = unique(groups);
+
+if isempty(groupColors)
+    groupColors = zeros(length(groups_uni), 3);
+end
 
 k = 0;
 groupBorders = zeros(length(groups_uni),1);
@@ -36,12 +57,15 @@ for gr = 1:length(groups_uni)
         % plot spikes
         ind = spikes_trials == grTrials(j);
         st = spikes_al(ind);
-        plot(st, ones(length(st),1).*k, 'k.', 'MarkerSize', 4)
+        plot(st, ones(length(st),1).*k, '.', 'MarkerSize', 4, ...
+            'Color', groupColors(gr,:))
     end
 end
 axis([limits 0 groupBorders(end)+1])
 set(gca, 'YDir', 'reverse')
 yticks(groupBorders - diff([0;groupBorders])./2)
 yticklabels(groupNames)
-lgd = legend(h_markers, markers(:,end));
+if ~isempty(markers)
+    lgd = legend(h_markers, markers(:,end));
+end
 hold off
