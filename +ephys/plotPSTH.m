@@ -26,6 +26,7 @@ axes(gca)
 hold on
 
 groups_uni = unique(groups);
+groups_uni(isnan(groups_uni)) = [];
 
 if isempty(groupColors)
     groupColors = zeros(length(groups_uni), 3);

@@ -1,17 +1,23 @@
 function [traces, bins] = tracesFromPSTH(times, trials, groups, limits, ...
-    binSize, sigma)
+    binSize, sigma, isCausal)
 
 % Calculate smoother PSTHs from spike times.
 %
-% traces    [group x t]; One trace per group
+% traces    [group x t]; One trace per group in spikes per second
 % bins      [1 x t]; time of traces
 %
 % times     [st x 1]; spike times aligned to event of interest
-% trials    [st x 1]
-% groups
-% limits
-% binSize
-% sigma
+% trials    [st x 1]; trial ID of spike
+% groups    [trial x 1]; group ID of each trial
+% limits    [pre post]; time spans before and after each aligned event,
+%           which defines the length of the traces
+% binSize   binSize
+% sigma     sigma of smoothing Gaussian
+% isCausal  logical; if true, smoothing kernel is causal
+
+if nargin < 7
+    isCausal = true;
+end
 
 if prod(limits) < 0
     edges = [-flip(0:binSize:-limits(1)) binSize:binSize:limits(2)];
@@ -48,10 +54,19 @@ end
 sigBins = sigma/binSize;
 x = floor(-5*sigBins):ceil(5*sigBins);
 win = normpdf(x, 0, sigBins);
-win(x < 0) = [];
+if isCausal
+    win(x < 0) = [];
+end
 win = win ./ sum(win);
+w = ones(1,length(win));
 for g = uniGr
-    tr = conv([ones(1,length(win)) .* nanmean(traces(g,1:sigBins)), ...
-        traces(g,:)], win);
-    traces(g,:) = tr(length(win)+(1:length(bins)));
+    if isCausal
+        tr = conv([w .* nanmean(traces(g,1:sigBins)), ...
+            traces(g,:)], win);
+    else
+        tr = conv([w .* nanmean(traces(g,1:sigBins)), ...
+            traces(g,:), w .* nanmean(traces(g,end-sigBins:end))], win, 'same');
+    end
+    tr = tr(length(win)+(1:length(bins)));
+    traces(g,:) = tr;
 end
