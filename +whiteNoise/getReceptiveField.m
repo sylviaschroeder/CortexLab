@@ -1,104 +1,170 @@
-function [receptiveField, explainedVariance, traces, ...
-    predictions] = getReceptiveField(trace, traceTimes, stimFrames, ...
-    stimFrameTimes, repetitionTimes, RFframes, ...
-    lambdas, crossValFolds, plotResponseTraces)
-%GETRECEPTIVEFIELD Returns spatiotemporal receptive field.
-%   [receptiveField, frameTimes] = GETRECEPTIVEFIELD(trace, ...
-%    traceTimes, stimFrames, stimFrameTimes, repetitionTimes, RFtype, ...
-%    plotResponseTraces, method) calculates the linear RF of the neuron.
-%
-%   receptiveField      {1 x RFtypes}; in each entry: [rows x cols x time]
-%                       containing Pearson's correlation between the pixel
-%                       of the stimulus with the response at the specified 
-%                       time lag 
-%   frameTimes          in sec
-%
-%   trace               [n x 1]; calcium trace of neuron
-%   traceTimes          [n x 1]; sample times of calcium trace
-%   stimFrames          [rows x cols x m]; noise stimulus
-%   stimFrameTimes      [1 x m]; times of stimulus frames
-%   repetitionTimes     struct; contains stimulus on- and offsets of all
-%                       stimulus repetitions
-%   plotResponseTraces  0 or 1
+function [receptiveFields, explainedVariance, predictions, time] = ...
+    getReceptiveField(traces, traceTimes, ...
+    stimFrames, stimTimes, RFtimesInFrames, ...
+    lambdas, crossFolds)
 
-% generate toeplitz matrix: [[all pixels at t=0],[all pixels at t=-1],...]
+%GETRECEPTIVEFIELD Returns spatiotemporal receptive field.
+%   [receptiveFields, explainedVariance, predictions, time] = ...
+%    GETRECEPTIVEFIELD(traces, traceTimes, ...
+%    stimFrames, stimTimes, RFtimesInFrames, ...
+%    lambdas, crossFolds) calculates the linear RF of the neuron.
+%
+%   receptiveFields     [rows x cols x RFframes x RFtype x neuron]
+%                       containing linear regression solution for x in Ax=B
+%                       where A is stimulus [rows x cols x time] and B is
+%                       calcium response, for each neuron and stimulus 
+%                       model; ridge regression is performed on all data
+%                       using the optimal lambda value found with
+%                       cross-validation
+%   explainedVariance   [neuron x lambdaStim x crossFold], each entry:
+%                       explained variance for fitted RF for
+%                       each neuron, lambda, and cross val. fold
+%   predictions         [t x neuron], each column contains
+%                       prediction based on RF for test 
+%                       responses of specific neuron (using optimal
+%                       lambda)
+%   time                [t x 1]; time points for predictions
+%
+%   traces              [trTime x neuron]; calcium traces of neurons
+%   traceTimes          [trTime x 1]; sample times of calcium traces
+%   stimFrames          [time x rows x cols]; noise stimulus
+%   stimTimes           [time x 1]; times of stimulus frames
+%   RFtimesInFrames     [1 x RFframes]; frames of receptive field relative
+%                       to stimulus frames
+%   lambdas             [1 x lambda]; values of lambda
+%   crossFolds          ind; number of cross val. folds
+
+% generate toeplitz matrix for stimuli: [time x pixels]
+% each row holds all pixels at current and previous time points:
+% [[all pixels at t=0], [all pixels at t=-1], ...]
 % each column is time series of that particular pixel
-stim = reshape(stimFrames, [], size(stimFrames, 3))'; % single stimulus block containing time series of all pixels
-stim = [stim; NaN(length(RFframes)-1,size(stim,2))]; % add NaNs at end; concatinated stimulus blocks at t<0 will add non-NaN entries in these rows
-st = []; % concatinate time shifted stimulus blocks
-for t = 1:length(RFframes)
-    st = [st, [NaN(RFframes(1)-2+t, size(stim,2)); ...
-        stim(max(2-RFframes(1)-t,1):end-t+1,:)]];
+
+% find time gaps in stimulus presentation (usually when same visual noise
+% stimulus was repeated several times)
+stimBin = median(diff(stimTimes));
+indGap = find(diff(stimTimes) > 2 * stimBin);
+time = stimTimes;
+% fill gaps with zeros in stimulus matrix
+for g = 1:length(indGap)
+    add = round(diff(stimTimes(indGap(g) + [0 1])) ./ stimBin);
+    stimFrames = [stimFrames(1:indGap(g),:,:); ...
+        zeros(add, size(stimFrames,2), size(stimFrames,3)); ...
+        stimFrames(indGap(g)+1:end,:,:)];
+    time = [time(1:indGap(g)); ...
+        time(indGap(g)) + (1:add)' .* stimBin; ...
+        time(indGap(g)+1:end)];
+end
+% reshape stimulus frames to [time x px]; this represents a single
+% "stimulus block", i.e. the pixels to estimate a single time point of the
+% receptive field
+stim = reshape(stimFrames, size(stimFrames,1), []);
+% now concatinate time shifted stimulus blocks; for each time point there
+% is a stimulus block for lag=0, another for lag=-1, another for lag=-2,...
+st = [];
+for t = 1:length(RFtimesInFrames)
+    st = [st, ...
+        [zeros(max(0,RFtimesInFrames(1)-1+t), size(stim,2)); ...
+        stim(max(1,2-RFtimesInFrames(1)-t) : end-RFtimesInFrames(1)-t+1, :)]];
 end
 stim = st;
-stim(isnan(stim)) = 0; % set NaNs to zero as if no stimulus was presented before and after each repetition
-stim = repmat(stim, length(repetitionTimes.onset), 1); % repeat stimulus matrix for each repetition of presentation
+clear st
 
-% get neural response for each repetition
-trialTraces = whiteNoise.getTrialTraces(trace, traceTimes, repetitionTimes, ...
-    stimFrameTimes, 1);
-trialTraces(size(st,1)+1:end,:) = []; % cut each time series to length of stimulus presentation
-
+% get neural response
+traceBin = median(diff(traceTimes));
+numBins = round(stimBin / traceBin);
+traces = smoothdata(traces, 1, 'movmean', numBins, 'omitnan');
+traces = interp1(traceTimes, traces, time);
 % z-score neural response
-zTrace = (trialTraces - nanmean(trialTraces(:))) ./ nanstd(trialTraces(:));
-zTrace = zTrace(:);
+zTraces = (traces - nanmean(traces,1)) ./ nanstd(traces,0,1);
 
-if plotResponseTraces == 1
-    screenSize = get(0, 'ScreenSize');
-    figure('Position', [10 695 screenSize(3)-20 420])
-    hold on
-    for rep = 1:length(repetitionTimes.onset)
-        plot(stimFrameTimes, trialTraces(1:length(stimFrameTimes),rep), 'Color', ...
-            ones(1, 3) * (rep - 1) / length(repetitionTimes.onset))
-    end
-    plot(stimFrameTimes, median(trialTraces(1:length(stimFrameTimes),:),2), ...
-        'r', 'LineWidth', 2)
-    axis tight
-    xlabel('Time (in s)')
-    ylabel('Raw Ca-response')
-end
-
-% delete entries where response to NaN
-ind = isnan(zTrace);
+% delete stim frames for which all neurons have NaN
+ind = all(isnan(zTraces),2);
 stim(ind,:) = [];
-zTrace(ind) = [];
+zTraces(ind,:) = [];
+time(ind) = [];
+% if NaN values < 5% in a neuron, exchange NaNs for 0
+ind = any(isnan(zTraces),1) & sum(isnan(zTraces),1)/size(zTraces,1) <= 0.05;
+if sum(ind) > 0
+    zTraces(:,ind) = fillmissing(zTraces(:,ind),'constant',0);
+end
+% skip neurons that have only NaN values
+valid = ~all(isnan(zTraces),1)';
 
-% duplicate stimulus matrix to predict linear part (1st half) and complex
-% part (2nd half, where stimulus was set to absolute values)
-stim = [stim, abs(stim)];
-stim = (stim - nanmean(stim(:))) ./ nanstd(stim(:)); % normalise each column of stimulus matrix
+% duplicate stimulus matrix to predict ON part (1st half) and OFF
+% part (2nd half)
+s = stim;
+s(stim < 0) = 0;
+stim2 = s;
+s = stim;
+s(stim > 0) = 0;
+stim2 = [stim2, s];
+stim2 = (stim2 - nanmean(stim2(:))) ./ nanstd(stim2(:)); % normalise each column of stimulus matrix
+clear sdesl
 
-% scale lamdas according to number of predictors
-lambdas = lambdas .* size(stim,2);
+% scale lamdas according to number of samples and number of predictors
+lamStim = sqrt(lambdas .* size(stim,1) .* size(stim,2));
 
-% calculate RFs using cross-validation and ridge regression
-receptiveField = NaN(size(stim,2), crossValFolds, length(lambdas));
-explainedVariance = NaN(crossValFolds, length(lambdas));
-n = ceil(size(stim,1) / crossValFolds);
-traces = NaN(n, crossValFolds);
-predictions = NaN(n, crossValFolds, length(lambdas));
-fprintf('  Folds: ')
-for fold = 1:crossValFolds
+% construct spatial smoothing lambda matrix
+lamMatrix_stim = krnl.makeLambdaMatrix([size(stimFrames,2), size(stimFrames,3), ...
+    length(RFtimesInFrames)], [1 1 0]);
+lamMatrix_stim = blkdiag(lamMatrix_stim, lamMatrix_stim);
+
+nPerFold = ceil(size(stim,1) / crossFolds);
+
+explainedVariance = NaN(size(traces,2), length(lamStim), crossFolds);
+predictions = NaN(nPerFold, crossFolds, size(traces,2), length(lamStim));
+
+% get variances explained
+fprintf('  Folds (of %d) to get expl. var. of RF: ', crossFolds)
+for fold = 1:crossFolds
     fprintf('%d ',fold)
-    ind = (1:n) + (fold-1)*n;
-    ind(ind>length(zTrace)) = [];
-    j = true(length(zTrace),1);
+    ind = (1:nPerFold) + (fold-1)*nPerFold;
+    ind(ind > size(zTraces,1)) = [];
+    j = true(size(zTraces,1),1);
     j(ind) = false;
-    st_fold = stim(j,:); % training stimulus
-    st_fold = gpuArray(st_fold);
-    traces(1:sum(~j),fold) = zTrace(~j); % testing neural trace
-    tr_fold = [zTrace(j); zeros(size(st_fold,2),1)]; % training neural trace with padded zeros for ridge regression
-    tr_fold = gpuArray(tr_fold);
-    for lam = 1:length(lambdas)
-        st_lam = [st_fold; gpuArray(eye(size(st_fold,2)) .* lambdas(lam))]; % add lambdas for ridge regression
-%         st_gpu = gpuArray(st_lam);
+    
+    y_train = gpuArray(padarray(zTraces(j,valid), size(lamMatrix_stim,1), 'post'));
+    y_test = zTraces(~j,valid);
+    x_train = stim2(j,:);
+    x_test = stim2(~j,:);
+
+    for lamS = 1:length(lamStim)
+        lms = lamMatrix_stim .* lamStim(lamS);
         
-        receptiveField(:,fold,lam) = gather(st_lam \ tr_fold); % get RF kernel
-        pred = stim(~j,:) * receptiveField(:,fold,lam); % get predicion based on RF and testing neural response
-        predictions(1:sum(~j),fold,lam) = pred;
-        explainedVariance(fold,lam) = 1 - sum((zTrace(~j)-pred).^2) / ...
-            sum((zTrace(~j)-mean(zTrace(j))).^2);
+        A = gpuArray([x_train; lms]);
+
+        B = gather(A \ y_train);
+        pred = x_test * B; % get prediction
+        predictions(1:sum(~j), fold, valid, lamS) = pred;
+        explainedVariance(valid, lamS, fold) = 1 - ...
+            sum((y_test - pred) .^ 2,1) ./ ...
+            sum((y_test - mean(zTraces(j, valid),1)) .^2, 1);
     end
-    clear tr_fold
 end
 fprintf('\n')
+
+% determine RFs using all data and optimal lambdas
+receptiveFields = NaN(size(stim2,2), size(traces,2));
+
+[~, bestStimLams] = max(mean(explainedVariance, 3), [], 2);
+fprintf('  Optimal lambdas (of %d) to get RFs: ', length(lamStim))
+for lamS = 1:length(lamStim)
+    fprintf('%d ', lamS)
+    ind = bestStimLams == lamS & valid;
+    if sum(ind) == 0
+        continue
+    end
+    A = [stim2; lamMatrix_stim .* lamStim(lamS)];
+    tr = padarray(zTraces(:,ind), size(lamMatrix_stim,1), 'post');
+    
+    B = gather(gpuArray(A) \ gpuArray(tr));
+    receptiveFields(:,ind) = B; % get RF kernel
+    predictions(:,:,ind,1) = predictions(:,:,ind,lamS);
+end
+fprintf('\n')
+
+receptiveFields = reshape(receptiveFields, size(stimFrames,2), ...
+    size(stimFrames,3), length(RFtimesInFrames), 2, size(traces,2));
+
+predictions = reshape(predictions(:,:,:,1), [], size(traces,2));
+predictions = predictions(1:length(time),:);
