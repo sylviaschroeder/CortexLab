@@ -5,15 +5,20 @@ spatialAvg = 1; % in pixels
 tempAvg = 1;
 movieStart = -1; % relative to stimulus start (in sec)
 movieDur = 40; % in sec
-hasTwoROIs = true;
-% cutOffs = [-8000 0];
-cutOffs = [-16400 -14800];
+hasTwoROIs = false;
+% cutOffs = [-8000 -3000];
+cutOffs = [-16000 -14000];
+
+% if reading binary movie
+isBinary = false;
+noRows = 1024;
+noFrames = 15 * 46;
 
 %% Paths
 % folders
-% folderData = 'Z:\RawData\SS109\2022-03-24\1';
-% folderData = 'C:\Data\SS109_2022-03-24_1';
-folderData = 'C:\Data\SS109_2022-05-09_1';
+% folderData = 'Z:\RawData\SS113\2022-06-30\1';
+folderData = 'C:\Data\SS113_2022-06-30_1';
+% folderData = 'C:\Data\Hedes_2022-03-01_1';
 folderTools = 'C:\dev\toolboxes';
 folderMyRepos = 'C:\dev\workspaces';
 
@@ -22,30 +27,47 @@ addpath(genpath(fullfile(folderMyRepos, 'CortexLab')))
 addpath(genpath(fullfile(folderTools, 'npy-matlab')))
 
 %% Load data
-% load tiff of 2P movie
-list = dir(fullfile(folderData, 'file_*.tif'));
-neuroFrames = [];
-for k = 1:length(list)
-    neuroFrames = cat(3, neuroFrames, tiffreadVolume(fullfile(folderData, ...
-        list(k).name))); % [rows x columns x time]
-%     neuroFrames = cat(3, neuroFrames, tiffreadVolume(fullfile(folderData, list(1).name), ...
-%         'PixelRegion', {[1 Inf], [1 Inf], [1 Inf]})); % [rows x columns x time]
+% load 2P movie
+if isBinary
+    fileName = fullfile(folderData, 'data.bin');
+    fid = fopen(fileName);
+    neuroFrames = fread(fid,  noRows * noRows * noFrames, 'int16');
+    fclose(fid);
+    neuroFrames = reshape(neuroFrames, noRows, noRows, []);
+else
+    list = dir(fullfile(folderData, 'file_*.tif'));
+    neuroFrames = [];
+    for k = 1 :length(list)
+        neuroFrames = cat(3, neuroFrames, tiffreadVolume(fullfile(folderData, ...
+            list(k).name))); % [rows x columns x time]
+    end
 end
 
 % load frame times of tiff movie
-neuroTime = readNPY(fullfile(folderData, '2pCalcium.timestamps.npy')); % in msec
+% neuroTime = readNPY(fullfile(folderData, '2pCalcium.timestamps.npy')); % in msec
+neuroTime = readNPY(fullfile(folderData, 'frameTimes.npy')); % in sec
 
 % load stimulus frames
-stimFrames = readNPY(fullfile(folderData, 'sparseNoise.mapArray.npy')); % [time x rows x columns]
+% stimFrames = readNPY(fullfile(folderData, 'sparseNoise.mapArray.npy')); % [time x rows x columns]
+stimFrames = readNPY(fullfile(folderData, 'sparse.npy')); % [time x rows x columns]
 
 % load frame times of stimulus
-stimTime = readNPY(fullfile(folderData, 'sparseNoise.times.npy')); % in msec
+% stimTime = readNPY(fullfile(folderData, 'sparseNoise.times.npy')); % in msec
+stimTime = readNPY(fullfile(folderData, 'stimTimes.npy')); % in sec
 
 %% Process data
+if size(neuroFrames,3) < length(neuroTime)
+    neuroTime = neuroTime(1:size(neuroFrames,3));
+elseif size(neuroFrames,3) > length(neuroTime)
+    neuroFrames(:,:,length(neuroTime)+1 : end) = [];
+end
 ind = neuroTime >= stimTime(1) + movieStart & ...
     neuroTime <= stimTime(1) + movieStart + movieDur;
 neuroTime(~ind) = [];
 neuroFrames(:,:,~ind) = [];
+if isBinary
+    neuroFrames = permute(neuroFrames, [2 1 3]);
+end
 
 if hasTwoROIs
     neuroFrames = cat(2, neuroFrames(1 : size(neuroFrames,1)/2,:,:), ...
@@ -90,12 +112,11 @@ v = VideoWriter(fullfile(folderData, 'movie.avi'));
 v.FrameRate = round(1/median(diff(movieTime)));
 open(v);
 
-% figure('Position', [680 560 1070 420])
+figure('Position', [640 110 1148 712])
 % figure('Position', [640 110 1070 712])
-figure('Position', [8 110 1702 658])
-tiledlayout(2,4, 'TileSpacing','tight','Padding','tight')
-nexttile([2 3]);
-axis image off
+tiledlayout(3,4, 'TileSpacing','tight','Padding','tight')
+nexttile([3 3]);
+axis image off ij
 colormap gray
 set(gca, 'nextplot', 'replacechildren')
 nexttile(4);
@@ -105,8 +126,14 @@ set(gca, 'nextplot', 'replacechildren')
 for f = 1:length(movieTime)
     nexttile(1)
     imagesc(movieNeuro(:,:,f), cutOffs)
+%     if f == 1
+%         set(gca, 'nextplot', 'replacechildren')
+%     end
     nexttile(4)
     imagesc(movieStim(:,:,f), [-1 1])
+%     if f == 1
+%         set(gca, 'nextplot', 'replacechildren')
+%     end
     
     frame = getframe(gcf);
     writeVideo(v, frame);
