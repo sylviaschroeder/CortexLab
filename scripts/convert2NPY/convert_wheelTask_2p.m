@@ -3,34 +3,48 @@ timeGap = 600; %in s, gap between experiments
 smoothWheel = 0.15; % in s
 
 %% Folders
-folderTools = 'C:\STORAGE\workspaces';
+% folderTools = 'C:\STORAGE\workspaces';
+% folderScript = 'C:\dev\workspace\CortexLab';
+% 
+% folderBaseUCL = 'C:\STORAGE\OneDrive - University College London\Lab';
+% folderBaseSussex = 'C:\STORAGE\OneDrive - University of Sussex\Lab';
+% folderROIData = fullfile(folderBaseUCL, 'DATA\InfoStructs');
+% folderSave = fullfile(folderBaseSussex, 'DATA\NPY\task_2p');
+% folderTimeline = '\\ZSERVER.cortexlab.net\Data\expInfo';
+% folderConfig = '\\ZSERVER.cortexlab.net\Code\Rigging\config';
+% folderEyeRaw = '\\ZSERVER.cortexlab.net\Data\EyeCamera';
+% folderEyeDLC = fullfile(folderBaseUCL, 'DATA\DataToPublish\task2P');
+
+folderTools = 'C:\dev\toolboxes';
 folderScript = 'C:\dev\workspace\CortexLab';
 
-folderBaseUCL = 'C:\STORAGE\OneDrive - University College London\Lab';
-folderBaseSussex = 'C:\STORAGE\OneDrive - University of Sussex\Lab';
-folderROIData = fullfile(folderBaseUCL, 'DATA\InfoStructs');
+folderBaseSussex = 'C:\Users\Sylvia\OneDrive - University of Sussex\Lab';
+folderROIData = fullfile('Z:\UCLData\2P_Task');
 folderSave = fullfile(folderBaseSussex, 'DATA\NPY\task_2p');
-folderTimeline = '\\ZSERVER.cortexlab.net\Data\expInfo';
-folderConfig = '\\ZSERVER.cortexlab.net\Code\Rigging\config';
-folderEyeRaw = '\\ZSERVER.cortexlab.net\Data\EyeCamera';
-folderEyeDLC = fullfile(folderBaseUCL, 'DATA\DataToPublish\task2P');
+folderTimeline = 'Z:\UCLData\2P_Task';
+folderEyeRaw = 'Z:\UCLData\2P_Task';
+folderEyeDLC = 'Z:\UCLData\2P_Task';
+folderXFiles = fullfile(folderBaseSussex, 'DATA\Raw\UCL data\xfiles');
+folderStimulus = fullfile(folderBaseSussex, 'DATA\Raw\UCL data\Stimulus');
 
 %% Add paths
 addpath(genpath(fullfile(folderTools, 'npy-matlab')));
 addpath(genpath(fullfile(folderTools, 'wheelAnalysis')));
-addpath('\\ZSERVER.cortexlab.net\Code\2photonPipeline')
-addpath(genpath('C:\STORAGE\workspaces\Rigbox\cb-tools'))
-addpath('C:\STORAGE\workspaces\Rigbox')
-addpath('C:\STORAGE\workspaces\Rigbox\cortexlab')
-addpath('\\ZSERVER.cortexlab.net\Code\Spikes')
-addpath('\\ZSERVER.cortexlab.net\Data\xfiles')
+addpath(fullfile(folderBaseSussex, 'CODE_CortexLab'));
+addpath(folderXFiles);
+addpath(folderStimulus);
+% addpath(genpath('C:\STORAGE\workspaces\Rigbox\cb-tools'))
+% addpath('C:\STORAGE\workspaces\Rigbox')
+% addpath('C:\STORAGE\workspaces\Rigbox\cortexlab')
+% addpath('\\ZSERVER.cortexlab.net\Code\Spikes')
+% addpath('\\ZSERVER.cortexlab.net\Data\xfiles')
 addpath(genpath(fullfile(folderScript)));
 
 %% Load database
 db_wheelTask
 
 %% Collect data
-for k = 1:length(db)
+for k = 4:length(db)
     if isempty(db(k).expNoise)
         continue
     end
@@ -44,108 +58,108 @@ for k = 1:length(db)
         mkdir(folderSession)
     end
     
-    valid = [];
-    xyzPos = [];
-    planePerUnit = [];
-    cellIDs = [];
-    isGad = [];
-    infoDone = false;
-    F_all = [];
-    time = [];
+%     valid = [];
+%     xyzPos = [];
+%     planePerUnit = [];
+%     cellIDs = [];
+%     isGad = [];
+%     infoDone = false;
+%     F_all = [];
+%     time = [];
     
-    time_behaviour = [];
-    wheelPos = [];
-    wheelVelocity = [];
-    moveOn = [];
-    moveOff = [];
-    moveDispl = [];
-    peakVelTime = [];
-    peakAmp = [];
-    lickPiezo = [];
+%     time_behaviour = [];
+%     wheelPos = [];
+%     wheelVelocity = [];
+%     moveOn = [];
+%     moveOff = [];
+%     moveDispl = [];
+%     peakVelTime = [];
+%     peakAmp = [];
+%     lickPiezo = [];
+%     
+%     eyePos = [];
+%     eyeDiameter = [];
+%     eyeTime = [];
+%     
+%     trialStart = [];
+%     stimOnTimes = [];
+%     stimOffTimes = [];
+%     beepTimes = [];
+%     feedbackTimes = [];
+%     trialEnd = [];
+%     stimulus = [];
+%     repeated = [];
+%     choice = [];
+%     outcome = [];
+%     rewardAmount = [];
+%     preStimQuiescentPeriod = [];
+%     cueInteractiveDelay = [];
+%     responseWindow = [];
+%     posFeedbackPeriod = [];
+%     negFeedbackPeriod = [];
+%     stimSigma = [];
+%     stimAzi = [];
+%     stimAltitude = [];
+%     stimTargetThreshold = [];
+%     stimSpatFreq = [];
+%     stimOri = [];
     
-    eyePos = [];
-    eyeDiameter = [];
-    eyeTime = [];
-    
-    trialStart = [];
-    stimOnTimes = [];
-    stimOffTimes = [];
-    beepTimes = [];
-    feedbackTimes = [];
-    trialEnd = [];
-    stimulus = [];
-    repeated = [];
-    choice = [];
-    outcome = [];
-    rewardAmount = [];
-    preStimQuiescentPeriod = [];
-    cueInteractiveDelay = [];
-    responseWindow = [];
-    posFeedbackPeriod = [];
-    negFeedbackPeriod = [];
-    stimSigma = [];
-    stimAzi = [];
-    stimAltitude = [];
-    stimTargetThreshold = [];
-    stimSpatFreq = [];
-    stimOri = [];
-    
-    t0 = 0;
+%     t0 = 0;
     % task data
-    for iExp = 1:length(db(k).expTask)
-        folder = fullfile(folderROIData, db(k).subject, ...
-            db(k).date, num2str(iExp));
-        files = dir(fullfile(folder, '*_ROI.mat'));
-        valid_exp = [];
-        F_exp = [];
-        for iPlane = 1:length(files)
-            % load data
-            d = load(fullfile(folder, files(iPlane).name));
-            meta = d.meta;
-            numCells = size(meta.F_final,2);
-            
-            if ~infoDone
-                xyzPos = [xyzPos; cat(1, meta.ROI.CellXYZMicrons{:})];
-                planePerUnit = [planePerUnit; ones(numCells,1) .* iPlane];
-                cellIDs = [cellIDs; (1:numCells)'];
-                isGad = [isGad; meta.ROI.isGad];
-            end
-            
-            if iPlane == 1
-                frameTimes = ppbox.getFrameTimes(meta)';
-                time = [time; frameTimes + t0];
-                
-                if iExp == 1
-                    timeShifts = zeros(1, length(files));
-                end
-            elseif iExp == 1
-                t = ppbox.getFrameTimes(meta)';
-                l = min(length(t), length(time));
-                timeShifts(iPlane) = median(t(1:l) - frameTimes(1:l));
-            end
-            
-            F = meta.F_final;
-            if size(F_exp,1) > size(F,1)
-                F = padarray(F, size(F_exp,1)-size(F,1), NaN, 'post');
-            elseif size(F_exp,1)>0 && size(F_exp,1)<size(F,1)
-                F(size(F_exp,1)+1:end,:) = [];
-            end
-            F_exp = [F_exp, F];
-            
-            % valid ROIs: unique and no "switch-on" responses
-            valid_exp = [valid_exp; meta.ROI.isDuplicate == 0 & ...
-                meta.ROI.isSwitchOn == 0 & ~all(isnan(meta.F_final),1)'];
-        end
-        infoDone = true;
-        valid = [valid, valid_exp];
-        F_all = [F_all; F_exp];
+%     for iExp = 1:length(db(k).expTask)
+%         folder = fullfile(folderROIData, db(k).subject, ...
+%             db(k).date, num2str(iExp));
+%         files = dir(fullfile(folder, '*_ROI.mat'));
+%         valid_exp = [];
+%         F_exp = [];
+%         for iPlane = 1:length(files)
+%             % load data
+%             d = load(fullfile(folder, files(iPlane).name));
+%             meta = d.meta;
+%             numCells = size(meta.F_final,2);
+%             
+%             if ~infoDone
+%                 xyzPos = [xyzPos; cat(1, meta.ROI.CellXYZMicrons{:})];
+%                 planePerUnit = [planePerUnit; ones(numCells,1) .* iPlane];
+%                 cellIDs = [cellIDs; (1:numCells)'];
+%                 isGad = [isGad; meta.ROI.isGad];
+%             end
+%             
+%             if iPlane == 1
+%                 frameTimes = ppbox.getFrameTimes(meta)';
+%                 time = [time; frameTimes + t0];
+%                 
+%                 if iExp == 1
+%                     timeShifts = zeros(1, length(files));
+%                 end
+%             elseif iExp == 1
+%                 t = ppbox.getFrameTimes(meta)';
+%                 l = min(length(t), length(time));
+%                 timeShifts(iPlane) = median(t(1:l) - frameTimes(1:l));
+%             end
+%             
+%             F = meta.F_final;
+%             if size(F_exp,1) > size(F,1)
+%                 F = padarray(F, size(F_exp,1)-size(F,1), NaN, 'post');
+%             elseif size(F_exp,1)>0 && size(F_exp,1)<size(F,1)
+%                 F(size(F_exp,1)+1:end,:) = [];
+%             end
+%             F_exp = [F_exp, F];
+%             
+%             % valid ROIs: unique and no "switch-on" responses
+%             valid_exp = [valid_exp; meta.ROI.isDuplicate == 0 & ...
+%                 meta.ROI.isSwitchOn == 0 & ~all(isnan(meta.F_final),1)'];
+%         end
+%         infoDone = true;
+%         valid = [valid, valid_exp];
+%         F_all = [F_all; F_exp];
         
 %         data = load(fullfile(folder, 'timeAlign.mat'));
 %         blockAlign = data.alignment;
 %         
 %         % load timeline (time stamps, rotary encoder)
 %         folder = fullfile(folderTimeline, db(k).subject, db(k).date, ...
-%             num2str(db(k).exp(iExp)));
+%             num2str(db(k).expTask(iExp)));
 %         file = dir(fullfile(folder, '*_Timeline.mat'));
 %         if length(file) ~= 1
 %             disp('Timeline file missing or more than 1 exists!');
@@ -153,7 +167,7 @@ for k = 1:length(db)
 %         end
 %         data = load(fullfile(folder, file.name));
 %         timeline = data.Timeline;
-%         
+        
 %         switch db(k).microID
 %             case 'b'
 %                 data = load(fullfile(folderConfig, 'ZMAZE', ...
@@ -163,6 +177,14 @@ for k = 1:length(db)
 %                     'hardware20170131.mat'), 'mouseInput');
 %         end
 %         mmFactor = data.mouseInput.MillimetresFactor;
+
+%         % NOTE: mmFactor hardcoded on 30.05.2023
+%         switch db(k).microID
+%             case 'b'
+%                 mmFactor = 0.7775441817;
+%             case 'b2'
+%                 mmFactor = 0.38878905747;
+%         end
 %         
 %         t = timeline.rawDAQTimestamps;
 %         sr = 1 / median(diff(t));
@@ -190,25 +212,16 @@ for k = 1:length(db)
 %             db(k).date, num2str(iExp), 'eye.xyPos.npy'));
 %         eyeDiam_exp = readNPY(fullfile(folderEyeDLC, db(k).subject, ...
 %             db(k).date, num2str(iExp), 'eye.diameter.npy'));
+%         file = dir(fullfile(folderEyeRaw, db(k).subject, db(k).date, ...
+%             num2str(db(k).expTask(iExp)), '*_eye_TLtime.mat'));
 %         f = fullfile(folderEyeRaw, db(k).subject, db(k).date, ...
-%             num2str(db(k).exp(iExp)), sprintf('%s_%d_%s_eye_TLtime.mat', ...
-%             db(k).date, db(k).exp(iExp), db(k).subject));
+%             num2str(db(k).expTask(iExp)), file.name);
 %         if isfile(f)
 %             data = load(f);
 %             eyeTime_exp = data.pupilTimes;
 %         else
-%             fRaw = fullfile(folderEyeRaw, db(k).subject, db(k).date, ...
-%                 num2str(db(k).exp(iExp)), sprintf('%s_%d_%s_eye.mat', ...
-%                 db(k).date, db(k).exp(iExp), db(k).subject));
-%             if ~isfile(fRaw)
-%                 fprintf('Pupil data does not exist.')
-%                 eyeTime_exp = NaN(length(eyeDiam_exp), 1);
-%             else
-%                 d = str2double(strrep(db(k).date, '-', ''));
-%                 pupilTimes = eye.getFrameTimes(db(k).subject, d, db(k).exp(iExp));
-%                 save(f, 'pupilTimes');
-%                 eyeTime_exp = pupilTimes;
-%             end
+%             fprintf('Pupil data does not exist.')
+%             eyeTime_exp = NaN(length(eyeDiam_exp), 1);
 %         end
 %         
 %         % block: stim times, conditions, beep times, choice times
@@ -217,9 +230,11 @@ for k = 1:length(db)
 %             disp('Block file missing or more than 1 exists!');
 %             return
 %         end
+%         warning off
 %         data = load(fullfile(folder, file.name));
+%         warning on
 %         block_exp = data.block;
-%         block_exp = psy.stripIncompleteTrials(block_exp);
+%         block_exp = beh.stripIncompleteTrials(block_exp);
 %         start_exp = blockAlign.blockToPdTimeFrame([block_exp.trial.trialStartedTime])';
 %         stimOnTimes_exp = blockAlign.stimOnTimes';
 %         stimOffTimes_exp = blockAlign.stimOffTimes';
@@ -286,38 +301,65 @@ for k = 1:length(db)
 %         stimOri = [stimOri; ...
 %             ones(numTrials,1) * block_exp.parameters.targetOrientation];
 %         
+%         % only when 2P frametimes already saved
+%         frameTimes = ppbox.getFrameTimes2023(timeline);
+%         time = [time; frameTimes + t0];
+%         %--------------------------------------
 %         writeNPY(frameTimes([1 end])' + t0, fullfile(folderSession, ...
 %             sprintf('_ss_recordings.task%02d_intervals.npy', iExp)));
 %         
-        t0 = time(end) + timeGap;
-    end
+%         t0 = time(end) + timeGap;
+%     end
+
+    % for cases where 2P data were converted using prerocess_2023, find t0
+    % for visual noise experiments by loading _ss_2pCalcium.timestamps
+    % (this assumes that visual noise is always the 2nd experiment)
+    frameTimes = readNPY(fullfile(folderSession, '_ss_2pCalcium.timestamps.npy'));
+    ind = find(diff(frameTimes) > 300);
+    t0 = frameTimes(ind) + timeGap;
+    frameTimes(1:ind) = [];
     
     % visual noise data
     if ~isempty(db(k).expNoise)
-        folder = fullfile(folderROIData, db(k).subject, ...
-            db(k).date, num2str(db(k).expNoise));
-        files = dir(fullfile(folder, '*_ROI.mat'));
-        valid_exp = [];
-        F_exp = [];
-        for iPlane = 1:length(files)
-            % load data
-            d = load(fullfile(folder, files(iPlane).name));
-            meta = d.meta;
-            % find correct expInfo folder
-            stimFolder = dir(fullfile(folderTimeline, ['M*_' subject]));
-            meta.subject = stimFolder.name;
-            meta.folderTL = fullfile(stimFolder.folder, stimFolder.name, ...
-                db(k).date, num2str(meta.exp));
-            meta.basenameTL = sprintf('%s_%d_%s_Timeline', db(k).date, ...
-                meta.exp, stimFolder.name);
-            numCells = size(meta.F_final,2);
+%         folder = fullfile(folderROIData, db(k).subject, ...
+%             db(k).date, num2str(db(k).expNoise));
+%         files = dir(fullfile(folder, '*_ROI.mat'));
+%         valid_exp = [];
+%         F_exp = [];
+        for iPlane = 1 %:length(files)
+%             % load data
+%             d = load(fullfile(folder, files(iPlane).name));
+%             meta = d.meta;
+%             % find correct expInfo folder
+%             stimFolder = dir(fullfile(folderTimeline, ['M*_' subject]));
+%             meta.subject = stimFolder.name;
+%             meta.folderTL = fullfile(stimFolder.folder, stimFolder.name, ...
+%                 db(k).date, num2str(meta.exp));
+%             meta.basenameTL = sprintf('%s_%d_%s_Timeline', db(k).date, ...
+%                 meta.exp, stimFolder.name);
+%             numCells = size(meta.F_final,2);
+
+            meta.folderTL = fullfile(folderTimeline, db(k).subject, db(k).date, ...
+                num2str(db(k).expNoise));
+            file = dir(fullfile(meta.folderTL, '*_Timeline.mat'));
+            meta.basenameTL = file.name;
             
             if iPlane == 1
-                frameTimes = ppbox.getFrameTimes(meta)';
-                time = [time; frameTimes + t0];
+%                 data = load(fullfile(meta.folderTL, file.name));
+%                 timeline = data.Timeline;
+%                 frameTimes = ppbox.getFrameTimes2023(timeline);
+%                 time = [time; frameTimes + t0];
                 
                 stimTimes = ppbox.getStimTimes(meta);
-                [stimFrames, stimPosition] = whiteNoise.getStimulusFrames(meta);
+%                 [stimFrames, stimPosition] = whiteNoise.getStimulusFrames(meta);
+                fileHardware = dir(fullfile(folderTimeline, db(k).subject, db(k).date, ...
+                    num2str(db(k).expNoise), '*_hardwareInfo.mat'));
+                [stimFrames, stimPosition] = ...
+                    whiteNoise.getStimulusFrames2023(...
+                    fullfile(folderTimeline, db(k).subject, db(k).date, ...
+                    num2str(db(k).expNoise), 'Protocol.mat'), ...
+                    fullfile(folderTimeline, db(k).subject, db(k).date, ...
+                    num2str(db(k).expNoise), fileHardware.name));
                 stimFrames = permute(stimFrames, [3 1 2]);
                 stimFrameDur = mean(stimTimes.offset - stimTimes.onset) / size(stimFrames,1);
                 stimFrameTimes = ((1:size(stimFrames,1))-1) .* stimFrameDur;
@@ -333,39 +375,39 @@ for k = 1:length(db)
                     fullfile(folderSession, '_ss_sparseNoiseID.map.npy'));
             end
             
-            F = meta.F_final;
-            if size(F_exp,1) > size(F,1)
-                F = padarray(F, size(F_exp,1)-size(F,1), NaN, 'post');
-            elseif size(F_exp,1)>0 && size(F_exp,1)<size(F,1)
-                F(size(F_exp,1)+1:end,:) = [];
-            end
-            F_exp = [F_exp, F];
-            
-            % valid ROIs: unique and no "switch-on" responses
-            valid_exp = [valid_exp; meta.ROI.isDuplicate == 0 & ...
-                meta.ROI.isSwitchOn == 0 & ~all(isnan(meta.F_final),1)'];
+%             F = meta.F_final;
+%             if size(F_exp,1) > size(F,1)
+%                 F = padarray(F, size(F_exp,1)-size(F,1), NaN, 'post');
+%             elseif size(F_exp,1)>0 && size(F_exp,1)<size(F,1)
+%                 F(size(F_exp,1)+1:end,:) = [];
+%             end
+%             F_exp = [F_exp, F];
+%             
+%             % valid ROIs: unique and no "switch-on" responses
+%             valid_exp = [valid_exp; meta.ROI.isDuplicate == 0 & ...
+%                 meta.ROI.isSwitchOn == 0 & ~all(isnan(meta.F_final),1)'];
         end
-        valid = [valid, valid_exp];
-        F_all = [F_all; F_exp];
+%         valid = [valid, valid_exp];
+%         F_all = [F_all; F_exp];
         
-        writeNPY(frameTimes([1 end])' + t0, fullfile(folderSession, ...
+        writeNPY(frameTimes([1 end])', fullfile(folderSession, ...
             '_ss_recordings.sparseNoise_intervals.npy'));
     end
-    valid = all(valid,2);
-    
-    writeNPY(planePerUnit(valid), ...
-        fullfile(folderSession, '_ss_2pRois._ss_2pPlanes.npy'));
-    writeNPY(cellIDs(valid), ...
-        fullfile(folderSession, '_ss_2pRois.ids.npy'));
-    writeNPY(xyzPos(valid,:), ...
-        fullfile(folderSession, '_ss_2pRois.xyz.npy'));
-    isGad(isGad == 0) = NaN;
-    writeNPY(isGad(valid), ...
-        fullfile(folderSession, '_ss_2pRois.isGad.npy'));
-    writeNPY(timeShifts, fullfile(folderSession, '_ss_2pPlanes.delay.npy'));
-    writeNPY(time, fullfile(folderSession, '_ss_2pCalcium.timestamps.npy'));
-    writeNPY(F_all(:,valid), ...
-        fullfile(folderSession, '_ss_2pCalcium.dff.npy'));
+%     valid = all(valid,2);
+%     
+%     writeNPY(planePerUnit(valid), ...
+%         fullfile(folderSession, '_ss_2pRois._ss_2pPlanes.npy'));
+%     writeNPY(cellIDs(valid), ...
+%         fullfile(folderSession, '_ss_2pRois.ids.npy'));
+%     writeNPY(xyzPos(valid,:), ...
+%         fullfile(folderSession, '_ss_2pRois.xyz.npy'));
+%     isGad(isGad == 0) = NaN;
+%     writeNPY(isGad(valid), ...
+%         fullfile(folderSession, '_ss_2pRois.isGad.npy'));
+%     writeNPY(timeShifts, fullfile(folderSession, '_ss_2pPlanes.delay.npy'));
+%     writeNPY(time, fullfile(folderSession, '_ss_2pCalcium.timestamps.npy'));
+%     writeNPY(F_all(:,valid), ...
+%         fullfile(folderSession, '_ss_2pCalcium.dff.npy'));
     
 %     writeNPY(time_behaviour, ...
 %         fullfile(folderSession, '_ss_wheel.timestamps.npy'));
