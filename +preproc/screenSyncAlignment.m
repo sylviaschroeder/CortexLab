@@ -21,11 +21,11 @@ blockFlipsTimes = block.stimWindowUpdateTimes;
 p = pdFlipTimes;
 b = blockFlipsTimes;
 ax = zeros(1,3);
-f1 = figure('Position', [3 42 512 1074]);
+f1 = figure('Position', [4 50 502 946]);
 ax(1) = gca;
-f2 = figure('Position', [516 696 1402 420]);
+f2 = figure('Position', [516 558 1402 420]);
 ax(2) = gca;
-f3 = figure('Position', [516 189 1402 420]);
+f3 = figure('Position', [516 55 1402 420]);
 ax(3) = gca;
 linkaxes(ax, 'x');
 for k = 1:3
@@ -61,7 +61,8 @@ while true
     xlabel('Time (s)')
     ylabel('Residuals')
     
-    rect = getrect(ax(2));
+%     rect = getrect(ax(2));
+    rect = drawrectangle(ax(2)).Position;
     if diodeHeight>rect(2) && diodeHeight<rect(2)+rect(4) % diode events
         ind = p>rect(1) & p<rect(1)+rect(3);
         p(ind) = [];

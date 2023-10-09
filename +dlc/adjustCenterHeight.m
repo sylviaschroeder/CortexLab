@@ -2,8 +2,8 @@ function [centerY, height] = adjustCenterHeight(output, F, params)
 
 pupilTop = output(:,1:3); % [x y likelihood]
 pupilBottom = output(:,4:6);
-pupilLeft = output(:,7:9);
-pupilRight = output(:,10:12);
+pupilRight = output(:,7:9);
+pupilLeft = output(:,10:12);
 lidTop = output(:,13:15);
 lidBottom = output(:,16:18);
 
