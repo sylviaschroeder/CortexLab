@@ -1,115 +1,22 @@
-function [frameTimes tl_flag] = getFrameTimes(varargin)
+function [frameTimes tl_flag] = getFrameTimes(videoPath, timeLinePath)
 
 % This function will return the frametimes of the eye-tracking movie
 % The frame times will be aligned to the Timeline time axis
 % If corresponding Timeline file does not exist, frame times will be
 % relative only.
-%
-% different possible ways to call this function:
-%
-% frameTimes = getFrameTimes(animal, series, exp)
-%              animal, series, experiment - as used in mpep 
-%              (series and exp are numericals)
-%              frameTimes - timestamps of frames in seconds, 
-%              aligned to the Timeline time axis
-% frameTimes = getFrameTimes() - will pop up a dialgo box to choose the
-%              eyeTracking data or video file
-% frameTimes = getFrameTimes(ExpRef)
-
-% These ways of calling are not supported yet:
-% frameTimes = getFrameTimes(eyeCameraFileName, timelineFileName)
 
 % May 2014 - MK Created
 
-if nargin == 3
-    animal = varargin{1};
-    series = varargin{2};
-    exp = varargin{3};
-    str = sprintf('ExpStart %s %d %d', animal, series, exp);
-    info = dat.mpepMessageParse(str);
-    
-    fullNames = dat.expFilePath(info.expRef, 'eyetracking');
-    % the second cell is the server location
-    [eyeFolder ,eyeFileStem, ~] = fileparts(fullNames{2});
-    % loading the eyeLog data
-    warning off % there is always an annoying warning about a videoinput object
-    load(fullfile(eyeFolder, eyeFileStem));
-    warning on
+warning off
+data = load([videoPath '.mat']);
+warning on
+eyeLog = data.eyeLog;
 
-    fullNames = dat.expFilePath(info.expRef, 'Timeline');
-    % the second cell is the server location
-    % loading the Timeline data
-    load(fullNames{2});
-
-elseif nargin == 2
-    % the two arguments are the two filenames - eye and TL
-elseif nargin == 1
-    % ExpRef is supplied as an argument
-    ExpRef = varargin{1};
+data = load(timeLinePath);
+Timeline = data.Timeline;
     
-    % loading the Eye-tracking data
-    fullNames = dat.expFilePath(ExpRef, 'eyetracking');
-    % the second cell is the server location
-    try
-        % first trying to load local data (if it exists)
-        [eyeFolder ,eyeFileStem, ~] = fileparts(fullNames{1});
-        warning off % there is always an annoying warning about a videoinput object
-        load(fullfile(eyeFolder, eyeFileStem));
-        warning on
-    catch
-        % if local loading fails - load from the server
-        [eyeFolder ,eyeFileStem, ~] = fileparts(fullNames{2});
-        warning off % there is always an annoying warning about a videoinput object
-        load(fullfile(eyeFolder, eyeFileStem));
-        warning on
-    end
-    % in any case eyeFolder should point to a server location at the end
-    % (for the video file)
-    [eyeFolder , ~, ~] = fileparts(fullNames{2});
-
-    % loading the Timeline data
-    fullNames = dat.expFilePath(ExpRef, 'Timeline');
-    try
-        % trying to load Timeline data from  a local location
-        load(fullNames{1});
-    catch
-    	try
-	        % local loading failed, loading from the server (slower)
-	        load(fullNames{2});
-        catch
-			warning('no timeline?')
-		end
-
-    end
-    
-elseif nargin == 0
-    % will open uigetfile(), so that user will be able to choose the video
-    % file
-    startPath = '\\zubjects.cortexlab.net\Subjects\';
-    [Filename, eyeFolder] = uigetfile('*.*', 'Choose an eye-tracking data file', startPath);
-    [~, eyeFileStem, ~] = fileparts(Filename);
-    % loading the eye data
-    warning off % there is always an annoying warning about a videoinput object
-    load(fullfile(eyeFolder, eyeFileStem));
-    warning on
-    
-    % figuring out where the Timeline data sits
-    und_idx = strfind(eyeFileStem, '_eye');
-    expRef = eyeFileStem(1:und_idx(end)-1);
-    fullNames = dat.expFilePath(expRef, 'Timeline');
-    % the second cell is the server location
-    % loading the Timeline data
-    try
-        load(fullNames{2});
-    catch
-        [Filename, eyeFolder] = uigetfile('*.*', 'Choose a timeline file', startPath);
-        load(fullfile(eyeFolder,Filename));
-    end
-
-end
-    
-vReader = VideoReader(fullfile(eyeFolder, eyeLog.loggerInfo.Filename));
-nFrames = vReader.NumberOfFrames;
+vReader = VideoReader([videoPath '.mj2']);
+nFrames = vReader.NumFrames;
 fprintf('There are %d frames in the video file\n', nFrames);
 fprintf('There are %d timestamps in the log file\n', length(eyeLog.TriggerData));
 
