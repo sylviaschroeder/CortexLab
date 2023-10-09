@@ -184,33 +184,33 @@ db(k).expPassive = 5;
 
 % SS090: inactivation of SC during visual stimulation only (no task)
 
-k=k+1;
-db(k).subject = 'SS091';
-db(k).date = '2018-04-25';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = [3 4];
-db(k).expNoise = 5;
-db(k).expPassive = 6;
-
-k=k+1;
-db(k).subject = 'SS091';
-db(k).date = '2018-04-26';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = [3 5 6];
-db(k).expNoise = 4;
-
-k=k+1; % signals was used
-db(k).subject = 'SS091';
-db(k).date = '2018-04-30';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 5;
+% k=k+1;
+% db(k).subject = 'SS091';
+% db(k).date = '2018-04-25';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = [3 4];
+% db(k).expNoise = 5;
+% db(k).expPassive = 6;
+% 
+% k=k+1;
+% db(k).subject = 'SS091';
+% db(k).date = '2018-04-26';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = [3 5 6];
+% db(k).expNoise = 4;
+% 
+% k=k+1; % signals was used
+% db(k).subject = 'SS091';
+% db(k).date = '2018-04-30';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 5;
 
 k=k+1;
 db(k).subject = 'SS092';
@@ -232,104 +232,104 @@ db(k).expTask = 3;
 db(k).expNoise = 5;
 db(k).expPassive = 6;
 
-k=k+1;
-db(k).subject = 'SS092';
-db(k).date = '2018-04-17';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 3;
-db(k).expTask = 4;
-db(k).expNoise = 5;
-db(k).expPassive = 6;
-
-k=k+1;
-db(k).subject = 'SS092';
-db(k).date = '2018-04-18';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expPassive = 5;
-
-k=k+1;
-db(k).subject = 'SS092';
-db(k).date = '2018-04-19';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expPassive = 5;
-
-k=k+1;
-db(k).subject = 'SS092';
-db(k).date = '2018-04-20';
-db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
-db(k).probeLocations = {'LP','RP','LA','RA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expPassive = 5;
-
-% from here on: signals was used
-k=k+1;
-db(k).subject = 'SS093';
-db(k).date = '2018-05-24';
-db(k).probes = {'K1', 'K2', 'K3'};
-db(k).probeLocations = {'LP','RP','LA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expNoiseGray = 5;
-db(k).expPassive = 6;
-
-k=k+1;
-db(k).subject = 'SS093';
-db(k).date = '2018-05-25';
-db(k).probes = {'K1', 'K2', 'K3'};
-db(k).probeLocations = {'LP','RP','LA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expNoiseGray = 5;
-db(k).expPassive = 6;
-
-k=k+1;
-db(k).subject = 'SS093';
-db(k).date = '2018-05-26';
-db(k).probes = {'K1', 'K2', 'K3'};
-db(k).probeLocations = {'LP','RP','LA'};
-db(k).expTL = 2;
-db(k).expTask = 3;
-db(k).expNoise = 4;
-db(k).expNoiseGray = 5;
-db(k).expPassive = 6; % not mentioned in lab book but data look fine
-
-k=k+1;
-db(k).subject = 'SS093';
-db(k).date = '2018-05-27';
-db(k).probes = {'K1', 'K2', 'K3'};
-db(k).probeLocations = {'LP','RP','LA'};
-db(k).expTL = 3;
-db(k).expTask = 9;
-db(k).expNoise = 10;
-db(k).expNoiseGray = 11;
-db(k).expNoiseLeftOnly = 13;
-db(k).expNoiseRightOnly = 14;
-db(k).expNoiseLeftCovered = 15;
-db(k).expNoiseRightCovered = 16;
-
-k=k+1;
-db(k).subject = 'SS093';
-db(k).date = '2018-05-28';
-db(k).probes = {'K1', 'K2', 'K3'};
-db(k).probeLocations = {'LP','RP','LA'};
-db(k).expTL = 2;
-db(k).expTask = 4;
-db(k).expNoise = 5;
-db(k).expNoiseGray = 6;
-db(k).expNoiseLeftOnly = 7;
-db(k).expNoiseRightOnly = 10;
-db(k).expNoiseLeftCovered = 8;
-db(k).expNoiseRightCovered = 9;
+% k=k+1;
+% db(k).subject = 'SS092';
+% db(k).date = '2018-04-17';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 3;
+% db(k).expTask = 4;
+% db(k).expNoise = 5;
+% db(k).expPassive = 6;
+% 
+% k=k+1;
+% db(k).subject = 'SS092';
+% db(k).date = '2018-04-18';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expPassive = 5;
+% 
+% k=k+1;
+% db(k).subject = 'SS092';
+% db(k).date = '2018-04-19';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expPassive = 5;
+% 
+% k=k+1;
+% db(k).subject = 'SS092';
+% db(k).date = '2018-04-20';
+% db(k).probes = {'K1', 'K2', 'K3', 'ZO'};
+% db(k).probeLocations = {'LP','RP','LA','RA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expPassive = 5;
+% 
+% % from here on: signals was used
+% k=k+1;
+% db(k).subject = 'SS093';
+% db(k).date = '2018-05-24';
+% db(k).probes = {'K1', 'K2', 'K3'};
+% db(k).probeLocations = {'LP','RP','LA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expNoiseGray = 5;
+% db(k).expPassive = 6;
+% 
+% k=k+1;
+% db(k).subject = 'SS093';
+% db(k).date = '2018-05-25';
+% db(k).probes = {'K1', 'K2', 'K3'};
+% db(k).probeLocations = {'LP','RP','LA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expNoiseGray = 5;
+% db(k).expPassive = 6;
+% 
+% k=k+1;
+% db(k).subject = 'SS093';
+% db(k).date = '2018-05-26';
+% db(k).probes = {'K1', 'K2', 'K3'};
+% db(k).probeLocations = {'LP','RP','LA'};
+% db(k).expTL = 2;
+% db(k).expTask = 3;
+% db(k).expNoise = 4;
+% db(k).expNoiseGray = 5;
+% db(k).expPassive = 6; % not mentioned in lab book but data look fine
+% 
+% k=k+1;
+% db(k).subject = 'SS093';
+% db(k).date = '2018-05-27';
+% db(k).probes = {'K1', 'K2', 'K3'};
+% db(k).probeLocations = {'LP','RP','LA'};
+% db(k).expTL = 3;
+% db(k).expTask = 9;
+% db(k).expNoise = 10;
+% db(k).expNoiseGray = 11;
+% db(k).expNoiseLeftOnly = 13;
+% db(k).expNoiseRightOnly = 14;
+% db(k).expNoiseLeftCovered = 15;
+% db(k).expNoiseRightCovered = 16;
+% 
+% k=k+1;
+% db(k).subject = 'SS093';
+% db(k).date = '2018-05-28';
+% db(k).probes = {'K1', 'K2', 'K3'};
+% db(k).probeLocations = {'LP','RP','LA'};
+% db(k).expTL = 2;
+% db(k).expTask = 4;
+% db(k).expNoise = 5;
+% db(k).expNoiseGray = 6;
+% db(k).expNoiseLeftOnly = 7;
+% db(k).expNoiseRightOnly = 10;
+% db(k).expNoiseLeftCovered = 8;
+% db(k).expNoiseRightCovered = 9;
