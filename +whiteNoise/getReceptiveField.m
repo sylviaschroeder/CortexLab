@@ -34,40 +34,9 @@ function [receptiveFields, explainedVariance, predictions, time] = ...
 %   lambdas             [1 x lambda]; values of lambda
 %   crossFolds          ind; number of cross val. folds
 
-% generate toeplitz matrix for stimuli: [time x pixels]
-% each row holds all pixels at current and previous time points:
-% [[all pixels at t=0], [all pixels at t=-1], ...]
-% each column is time series of that particular pixel
-
-% find time gaps in stimulus presentation (usually when same visual noise
-% stimulus was repeated several times)
-stimBin = median(diff(stimTimes));
-indGap = find(diff(stimTimes) > 2 * stimBin);
-time = stimTimes;
-% fill gaps with zeros in stimulus matrix
-for g = 1:length(indGap)
-    add = round(diff(stimTimes(indGap(g) + [0 1])) ./ stimBin);
-    stimFrames = [stimFrames(1:indGap(g),:,:); ...
-        zeros(add, size(stimFrames,2), size(stimFrames,3)); ...
-        stimFrames(indGap(g)+1:end,:,:)];
-    time = [time(1:indGap(g)); ...
-        time(indGap(g)) + (1:add)' .* stimBin; ...
-        time(indGap(g)+1:end)];
-end
-% reshape stimulus frames to [time x px]; this represents a single
-% "stimulus block", i.e. the pixels to estimate a single time point of the
-% receptive field
-stim = reshape(stimFrames, size(stimFrames,1), []);
-% now concatinate time shifted stimulus blocks; for each time point there
-% is a stimulus block for lag=0, another for lag=-1, another for lag=-2,...
-st = [];
-for t = 1:length(RFtimesInFrames)
-    st = [st, ...
-        [zeros(max(0,RFtimesInFrames(1)-1+t), size(stim,2)); ...
-        stim(max(1,2-RFtimesInFrames(1)-t) : end-RFtimesInFrames(1)-t+1, :)]];
-end
-stim = st;
-clear st
+% generate toplitz matrix for stimulus
+[stim, time, stimFrames, stimBin] = ...
+    whiteNoise.makeStimToeplitz(stimFrames, stimTimes, RFtimesInFrames);
 
 % get neural response
 traceBin = median(diff(traceTimes));
@@ -101,13 +70,18 @@ stim2 = [stim2, s];
 stim2 = (stim2 - nanmean(stim2(:))) ./ nanstd(stim2(:)); % normalise each column of stimulus matrix
 clear sdesl
 
-% scale lamdas according to number of samples and number of predictors
-lamStim = sqrt(lambdas .* size(stim,1) .* size(stim,2));
+if isempty(lambdas)
+    lamStim = 0;
+    lamMatrix_stim = [];
+else
+    % scale lamdas according to number of samples and number of predictors
+    lamStim = sqrt(lambdas .* size(stim,1) .* size(stim,2));
 
-% construct spatial smoothing lambda matrix
-lamMatrix_stim = krnl.makeLambdaMatrix([size(stimFrames,2), size(stimFrames,3), ...
-    length(RFtimesInFrames)], [1 1 0]);
-lamMatrix_stim = blkdiag(lamMatrix_stim, lamMatrix_stim);
+    % construct spatial smoothing lambda matrix
+    lamMatrix_stim = krnl.makeLambdaMatrix([size(stimFrames,2), size(stimFrames,3), ...
+        length(RFtimesInFrames)], [1 1 0]);
+    lamMatrix_stim = blkdiag(lamMatrix_stim, lamMatrix_stim);
+end
 
 nPerFold = ceil(size(stim,1) / crossFolds);
 
@@ -123,9 +97,16 @@ for fold = 1:crossFolds
     j = true(size(zTraces,1),1);
     j(ind) = false;
     
-    y_train = gpuArray(padarray(zTraces(j,valid), size(lamMatrix_stim,1), 'post'));
+    if crossFolds > 1
+        y_train = gpuArray(padarray(zTraces(j,valid), size(lamMatrix_stim,1), 'post'));
+        y_mean = mean(zTraces(j, valid),1);
+        x_train = stim2(j,:);
+    else
+        y_train = gpuArray(padarray(zTraces(~j,valid), size(lamMatrix_stim,1), 'post'));
+        y_mean = mean(zTraces(~j, valid),1);
+        x_train = stim2(~j,:);
+    end
     y_test = zTraces(~j,valid);
-    x_train = stim2(j,:);
     x_test = stim2(~j,:);
 
     for lamS = 1:length(lamStim)
@@ -135,10 +116,10 @@ for fold = 1:crossFolds
 
         B = gather(A \ y_train);
         pred = x_test * B; % get prediction
-        predictions(1:sum(~j), fold, valid, lamS) = pred;
+        predictions(1:length(pred), fold, valid, lamS) = pred;
         explainedVariance(valid, lamS, fold) = 1 - ...
             sum((y_test - pred) .^ 2,1) ./ ...
-            sum((y_test - mean(zTraces(j, valid),1)) .^2, 1);
+            sum((y_test - y_mean) .^2, 1);
     end
 end
 fprintf('\n')

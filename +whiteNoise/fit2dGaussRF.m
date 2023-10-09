@@ -35,7 +35,9 @@ function [x, fitResp] = fit2dGaussRF(resp, makeplots)
 
         lb = [0,min(xcoords),0,min(ycoords),0,-pi/4];
         ub = [realmax('double'),max(xcoords),(max(xcoords))^2,max(ycoords),(max(ycoords))^2,pi/4];
-        [x,resnorm,residual,exitflag] = lsqcurvefit(@whiteNoise.D2GaussFunctionRot,x0,xdata,resp,lb,ub);
+        options = optimoptions('lsqcurvefit', 'Display', 'off');
+        x = lsqcurvefit(@whiteNoise.D2GaussFunctionRot, x0, xdata, ...
+            resp, lb, ub, options);
 
         fitResp = whiteNoise.D2GaussFunctionRot(x, xdata);
         
