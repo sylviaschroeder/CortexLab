@@ -738,41 +738,41 @@ for iSet = 1:length(db)
 end
 
 %% Classify cells into GAD-positive and -negative neurons
-% clear opt
-% opt.classThresholds = [55 85];
-% opt.bloodThreshold = 20;
-% opt.width = 20;
-% for iSet = 1:length(db)
-%     folder = fullfile(ops.InfoStorage, db(iSet).mouse_name, db(iSet).date);
-%     files = [db(iSet).date '_%d_' db(iSet).mouse_name '_2P_plane%03d_ROI.mat'];
-%     planes = db(iSet).planesToProcess;
-%     expts = 1:length(db(iSet).expts);
-%     for iPlane = planes
-%         iExp = expts(1);
-%         file = fullfile(folder, num2str(iExp), sprintf(files, iExp, iPlane));
-%         data = load(file);
-%         meta = data.meta;
-%         data = load(fullfile(meta.folderDat, meta.filenameDat));
-%         stat = data.dat.stat([data.dat.stat.iscell] == 1);
-%         opt.zoom = meta.zoomFactor;
-%         opt.scope = meta.microID;
-%         opt.xrange = data.dat.ops.xrange;
-%         opt.yrange = data.dat.ops.yrange;
-%         [classes, opt2] = classifyCells(meta.targetFrame, ...
-%             meta.targetFrameROI, opt, stat);
-%         meta.ROI.isGad = classes;
-%         meta.opsGAD = opt2;
-%         save(file, 'meta');
-%         for iExp = expts(2:end)
-%             file = fullfile(folder, num2str(iExp), sprintf(files, iExp, iPlane));
-%             data = load(file);
-%             meta = data.meta;
-%             meta.ROI.isGad = classes;
-%             meta.opsGAD = opt2;
-%             save(file, 'meta');
-%         end
-%     end
-% end
+clear opt
+opt.classThresholds = [55 85];
+opt.bloodThreshold = 20;
+opt.width = 20;
+for iSet = 1:length(db)
+    folder = fullfile(ops.InfoStorage, db(iSet).mouse_name, db(iSet).date);
+    files = [db(iSet).date '_%d_' db(iSet).mouse_name '_2P_plane%03d_ROI.mat'];
+    planes = db(iSet).planesToProcess;
+    expts = 1:length(db(iSet).expts);
+    for iPlane = planes
+        iExp = expts(1);
+        file = fullfile(folder, num2str(iExp), sprintf(files, iExp, iPlane));
+        data = load(file);
+        meta = data.meta;
+        data = load(fullfile(meta.folderDat, meta.filenameDat));
+        stat = data.dat.stat([data.dat.stat.iscell] == 1);
+        opt.zoom = meta.zoomFactor;
+        opt.scope = meta.microID;
+        opt.xrange = data.dat.ops.xrange;
+        opt.yrange = data.dat.ops.yrange;
+        [classes, opt2] = classifyCells(meta.targetFrame, ...
+            meta.targetFrameROI, opt, stat);
+        meta.ROI.isGad = classes;
+        meta.opsGAD = opt2;
+        save(file, 'meta');
+        for iExp = expts(2:end)
+            file = fullfile(folder, num2str(iExp), sprintf(files, iExp, iPlane));
+            data = load(file);
+            meta = data.meta;
+            meta.ROI.isGad = classes;
+            meta.opsGAD = opt2;
+            save(file, 'meta');
+        end
+    end
+end
 
 %% Plot raw and processed Calcium traces to check results (OLD)
 % figure('Position', [3 260 1915 835]);
