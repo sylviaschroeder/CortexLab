@@ -27,6 +27,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 7:14;
 db(k).newSuite2p = false;
+db(k).depth = 55;
 
 k=k+1; %2
 db(k).subject = 'M160923_SS069';
@@ -37,6 +38,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 7:14;
 db(k).newSuite2p = false;
+db(k).depth = 29;
 
 k=k+1; %3
 db(k).subject = 'M160923_SS069';
@@ -47,6 +49,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = [9 10 12 14 15];
 db(k).newSuite2p = false;
+db(k).depth = 28;
 
 k=k+1; %4
 db(k).subject = 'M160923_SS069';
@@ -57,6 +60,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 39; % above plane 4
 
 k=k+1; %5
 db(k).subject = 'M160923_SS070';
@@ -67,6 +71,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 7:12;
 db(k).newSuite2p = false;
+db(k).depth = 14; % above plane 6
 
 k=k+1; %6
 db(k).subject = 'M160923_SS071';
@@ -77,6 +82,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 10:14;
 db(k).newSuite2p = false;
+db(k).depth = 32; % above plane 6
 
 k=k+1; %7
 db(k).subject = 'M170821_SS075';
@@ -87,6 +93,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 5;
 db(k).newSuite2p = false;
+db(k).depth = 30; % above plane 4
 
 k=k+1; %8
 db(k).subject = 'SS075';
@@ -97,6 +104,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 5;
 db(k).newSuite2p = false;
+db(k).depth = 24.5; % above plane 4
 
 k=k+1; %9
 db(k).subject = 'M170821_SS076';
@@ -107,6 +115,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 7;
 db(k).newSuite2p = false;
+db(k).depth = 20; % above plane 4
 
 k=k+1; %10
 db(k).subject = 'M170821_SS076';
@@ -117,6 +126,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 50; % above plane 4
 
 k=k+1; %11
 db(k).subject = 'SS076';
@@ -127,6 +137,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 38;
 
 k=k+1; %12
 db(k).subject = 'SS076';
@@ -137,6 +148,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 85; % above plane 4
 
 k=k+1; %13
 db(k).subject = 'SS077';
@@ -147,6 +159,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 37; % above plane 4
 
 k=k+1; %14
 db(k).subject = 'SS077';
@@ -157,6 +170,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 30; % above plane 4
 
 k=k+1; %15
 db(k).subject = 'SS077';
@@ -167,6 +181,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 6;
 db(k).newSuite2p = false;
+db(k).depth = 50; % above plane 5
 
 k=k+1; %16
 db(k).subject = 'SS078';
@@ -177,6 +192,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 5;
 db(k).newSuite2p = false;
+db(k).depth = 44; % above plane 4
 
 k=k+1; %17
 db(k).subject = 'SS078';
@@ -187,6 +203,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 5;
 db(k).newSuite2p = false;
+db(k).depth = 49; % above plane 4
 
 k=k+1; %18
 db(k).subject = 'SS078';
@@ -197,6 +214,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 5;
 db(k).newSuite2p = false;
+db(k).depth = 30; % above plane 4
 
 %% SC Neurons
 
@@ -207,8 +225,9 @@ db(k).expGratings = 2;
 db(k).expNoise = 3;
 db(k).expStatic = [];
 db(k).expBars = 1;
-db(k).planes = 1:4;
+db(k).planes = 1:4; % set to be 8 um apart
 db(k).newSuite2p = true;
+db(k).depth = 0; % top-most neurons; dirst seen 103 microns above recording depth
 
 k=k+1;
 db(k).subject = 'M150305_SS041';
@@ -219,6 +238,7 @@ db(k).expStatic = 2;
 db(k).expBars = [];
 db(k).planes = 2:5;
 db(k).newSuite2p = false;
+db(k).depth = 10.8;
 
 k=k+1;
 db(k).subject = 'M150410_SS044';
@@ -229,6 +249,7 @@ db(k).expStatic = [];
 db(k).expBars = 2;
 db(k).planes = 2:5;
 db(k).newSuite2p = false;
+db(k).depth = 5.8;
 
 k=k+1;
 db(k).subject = 'M150410_SS044'; % Vane
@@ -237,8 +258,9 @@ db(k).expGratings = 3;
 db(k).expNoise = 4;
 db(k).expStatic = 2;
 db(k).expBars = [];
-db(k).planes = 1:3;
+db(k).planes = 1:3; % set to be 10 um apart
 db(k).newSuite2p = true;
+db(k).depth = 8.2;
 
 k=k+1;
 db(k).subject = 'M150410_SS044'; % Vane
@@ -247,8 +269,9 @@ db(k).expGratings = 4;
 db(k).expNoise = 7;
 db(k).expStatic = 5;
 db(k).expBars = 3;
-db(k).planes = 1:3;
+db(k).planes = 1:3; % set to be 10 um apart
 db(k).newSuite2p = true;
+db(k).depth = 6.1;
 
 k=k+1;
 db(k).subject = 'M150410_SS044'; % not on Vane's list; dataset added now (08/2021)
@@ -259,6 +282,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 2:4;
 db(k).newSuite2p = true;
+db(k).depth = 3.6; % depth information per ROI looks fine
 
 k=k+1;
 db(k).subject = 'M150410_SS045';
@@ -269,6 +293,7 @@ db(k).expStatic = [];
 db(k).expBars = 1;
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 13.3;
 
 k=k+1;
 db(k).subject = 'M150410_SS045';
@@ -279,6 +304,7 @@ db(k).expStatic = 1;
 db(k).expBars = [];
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 7.5;
 
 k=k+1;
 db(k).subject = 'M150610_SS047'; % re-processed by Vane, but using my old data
@@ -289,6 +315,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 17;
 
 k=k+1;
 db(k).subject = 'M150610_SS047';
@@ -299,6 +326,7 @@ db(k).expStatic = 2;
 db(k).expBars = 3;
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 28;
 
 k=k+1;
 db(k).subject = 'M150611_SS048';
@@ -309,6 +337,7 @@ db(k).expStatic = 3;
 db(k).expBars = 4;
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 30;
 
 k=k+1;
 db(k).subject = 'M150611_SS048'; % re-processed by Vane, but using my old data
@@ -319,6 +348,7 @@ db(k).expStatic = [];
 db(k).expBars = [];
 db(k).planes = 2:4;
 db(k).newSuite2p = false;
+db(k).depth = 42;
 
 %% Not used
 % k=k+1;
