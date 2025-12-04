@@ -5,7 +5,9 @@
 %% Folders
 folderSourceRaw = 'Z:\RawData\';
 folderSourceProcessed = 'Z:\ProcessedData';
-folderTarget = 'C:\Users\Sylvia\OneDrive - University of Sussex\Projects\2023_OrientationColumns\DataToPublish\ephys';
+% The Machine:
+folderTarget = 'C:\Users\sylvi\OneDrive - University of Sussex\Projects\2023_OrientationColumns\DataToPublish\ephys';
+% folderTarget = 'C:\Users\Sylvia\OneDrive - University of Sussex\Projects\2023_OrientationColumns\DataToPublish\ephys';
 folderTools = 'C:\dev\toolboxes';
 foldersRepo = 'C:\dev\workspaces\CortexLab';
 
@@ -18,7 +20,7 @@ np = py.importlib.import_module('numpy');
 
 %% Loop over datasets
 db =  db_orientationDataFromSchroederLab;
-for k = 6:length(db)
+for k = 1:length(db)
     fprintf("%s %s\n", db(k).subject, db(k).date)
     ft = fullfile(folderTarget, db(k).subject, db(k).date);
     if ~isfolder(ft)
@@ -90,6 +92,7 @@ for k = 6:length(db)
         fullfile(ft, 'spikes.clusters.npy'))
     writeNPY(spikeAmplitudes(spike_ind), fullfile(ft, 'spikes.amps.npy'))
     writeNPY(spikeDepths(spike_ind), fullfile(ft, 'spikes.depths.npy'))
+    writeNPY(clusters_good, fullfile(ft, 'clusters.ids.npy'))
     writeNPY(clusterWaveforms_curated, ...
         fullfile(ft, 'clusters.waveforms.npy'))
     writeNPY(clusterWfChannels_curated, ...
@@ -110,7 +113,13 @@ for k = 6:length(db)
             descr = pyrun("b = c[ind,0]", "b", c = descr_py, ind = int32(ex-1));
             expDescr{ex} = char(descr);
         end
-        gratingExp = strcmp('Gratings', expDescr);
+        gratingExp = find(strcmp('Gratings', expDescr));
+        % remove invalid grating experiments (e.g., where atropine was
+        % used)
+        if ~strcmp(db(k).gratingExperiments, "all")
+            gratingExp = gratingExp(db(k).gratingExperiments);
+        end
+
         intv = readNPY(fullfile(fs, "gratingsExp.intervals.npy"));
         if size(intv,2) == 1 % was incorrectly saved into single vector
             intv = reshape(intv, 2, [])';
@@ -119,11 +128,7 @@ for k = 6:length(db)
 
         t0 = readNPY(fullfile(fs, "gratings.startTime.npy"));
         t1 = readNPY(fullfile(fs, "gratings.endTime.npy"));
-        validTrials = false(size(t0));
-        for j = 1:size(intv,1)
-            validTrials(t0 >= intv(j,1) & t1 <= intv(j,2)) = true;
-        end
-        dirs = readNPY(fullfile(fs, "gratings.direction.npy"));
+        dirs = double(readNPY(fullfile(fs, "gratings.direction.npy")));
         sf = readNPY(fullfile(fs, "gratings.spatialF.npy"));
         tf = readNPY(fullfile(fs, "gratings.temporalF.npy"));
         contrast = readNPY(fullfile(fs, "gratings.contrast.npy"));
@@ -133,12 +138,23 @@ for k = 6:length(db)
             fprintf("  Unequal number of rows: grating files\n")
             return
         end
+        validTrials = false(size(t0));
+        for j = 1:size(intv,1)
+            tr = t0 >= intv(j,1) & t1 <= intv(j,2);
+            nonDirFeatures = [sf(tr), tf(tr), contrast(tr)];
+            uniqueStim = unique(nonDirFeatures, "rows");
+            if size(uniqueStim,1) > 1
+                continue
+            end
+            validTrials(tr) = true;
+        end
 
         stimFeatures = [dirs sf tf contrast];
         stimFeatures = stimFeatures(validTrials,:);
-        stimFeatures(:,1) = mod(stimFeatures(:,1), 360);
+        % mirror the direction angles along the vertical to make them
+        % consistent with data collected at the Cortex Lab
+        stimFeatures(:,1) = mod(180 - stimFeatures(:,1), 360);
         stimUnique = unique(stimFeatures, "rows");
-        stimUnique(:,1) = mod(stimUnique(:,1), 360);
         stimUnique = sortrows(stimUnique);
         trialStims = squeeze(all(stimFeatures == ...
             permute(stimUnique, [3 2 1]), 2));
